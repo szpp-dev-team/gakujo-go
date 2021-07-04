@@ -12,7 +12,13 @@ import (
 )
 
 func (c *Client) Login(username, password string) error {
-	if err := c.fetchGakujoJSESSIONID(); err != nil {
+	if err := c.fetchGakujoPortalJSESSIONID(); err != nil {
+		return err
+	}
+	if err := c.fetchGakujoRootJSESSIONID(); err != nil {
+		return err
+	}
+	if err := c.preLogin(); err != nil {
 		return err
 	}
 	loginAPIurl, err := c.fetchLoginAPIurl()
@@ -26,8 +32,35 @@ func (c *Client) Login(username, password string) error {
 	return nil
 }
 
-func (c *Client) fetchGakujoJSESSIONID() error {
+func (c *Client) fetchGakujoPortalJSESSIONID() error {
 	resp, err := c.get("https://gakujo.shizuoka.ac.jp/portal/")
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+	}
+
+	return nil
+}
+
+func (c *Client) fetchGakujoRootJSESSIONID() error {
+	resp, err := c.get("https://gakujo.shizuoka.ac.jp/UI/jsp/topPage/topPage.jsp")
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+	}
+
+	return nil
+}
+
+func (c *Client) preLogin() error {
+	params := url.Values{}
+	params.Set("mistakeChecker", "0")
+
+	resp, err := c.client.PostForm("https://gakujo.shizuoka.ac.jp/portal/login/preLogin/preLogin", params)
 	if err != nil {
 		return err
 	}
@@ -54,8 +87,8 @@ func (c *Client) fetchLoginAPIurl() (string, error) {
 	return resp.Header.Get("Location"), nil
 }
 
-func (c *Client) login(url, username, password string) error {
-	htmlReadCloser, err := c.postSSOexecution(url, username, password)
+func (c *Client) login(reqUrl, username, password string) error {
+	htmlReadCloser, err := c.postSSOexecution(reqUrl, username, password)
 	if err != nil {
 		return err
 	}
@@ -69,14 +102,21 @@ func (c *Client) login(url, username, password string) error {
 		return err
 	}
 	fmt.Println("Redilect to:", location)
+	urlURL, _ := url.Parse(location)
+	cookies := c.client.Jar.Cookies(urlURL)
+	fmt.Println("Cookie: ")
+	for _, cookie := range cookies {
+		fmt.Println(*cookie)
+	}
+
 	resp, err := c.get(location)
 	if err != nil {
 		return err
 	}
-	fmt.Println(resp.Request)
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
+	fmt.Println(resp.Request.Header)
 	b, _ := io.ReadAll(resp.Body)
 	if strings.Contains(string(b), "不正な操作") {
 		return errors.New("は？")
@@ -133,6 +173,7 @@ func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (str
 	return resp.Header.Get("Location"), nil
 }
 
+// return RelayState, SAMLResponse
 func scrapRelayStateAndSAMLResponse(htmlReader io.ReadCloser) (string, string, error) {
 	doc, err := goquery.NewDocumentFromReader(htmlReader)
 	if err != nil {

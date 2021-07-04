@@ -3,6 +3,9 @@ package api
 import (
 	"net/http"
 	"net/http/cookiejar"
+	"time"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 const (
@@ -16,12 +19,17 @@ type Client struct {
 }
 
 func NewClient() *Client {
-	jar, _ := cookiejar.New(nil)
+	jar, _ := cookiejar.New(
+		&cookiejar.Options{
+			PublicSuffixList: publicsuffix.List,
+		},
+	)
 	httpClient := http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
-		Jar: jar,
+		Jar:     jar,
+		Timeout: 30 * time.Second,
 	}
 	return &Client{
 		client: &httpClient,
@@ -35,7 +43,8 @@ func (c *Client) request(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.jar.SetCookies(resp.Request.URL, resp.Cookies())
+
+	//c.jar.SetCookies(resp.Request.URL, resp.Cookies())
 
 	return resp, nil
 }
