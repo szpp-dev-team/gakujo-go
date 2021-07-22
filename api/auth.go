@@ -6,7 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
+	"strconv"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -15,9 +16,11 @@ func (c *Client) Login(username, password string) error {
 	if err := c.fetchGakujoPortalJSESSIONID(); err != nil {
 		return err
 	}
+
 	if err := c.fetchGakujoRootJSESSIONID(); err != nil {
 		return err
 	}
+
 	if err := c.preLogin(); err != nil {
 		return err
 	}
@@ -25,6 +28,7 @@ func (c *Client) Login(username, password string) error {
 	if err != nil {
 		return err
 	}
+
 	if err := c.login(IdpHostName+loginAPIurl, username, password); err != nil {
 		return err
 	}
@@ -45,7 +49,8 @@ func (c *Client) fetchGakujoPortalJSESSIONID() error {
 }
 
 func (c *Client) fetchGakujoRootJSESSIONID() error {
-	resp, err := c.get("https://gakujo.shizuoka.ac.jp/UI/jsp/topPage/topPage.jsp")
+	unixmilli := time.Now().UnixNano() / 1000000
+	resp, err := c.get("https://gakujo.shizuoka.ac.jp/UI/jsp/topPage/topPage.jsp?_=" + strconv.FormatInt(unixmilli, 10))
 	if err != nil {
 		return err
 	}
@@ -102,14 +107,8 @@ func (c *Client) login(reqUrl, username, password string) error {
 		return err
 	}
 	fmt.Println("Redilect to:", location)
-	urlURL, _ := url.Parse(location)
-	cookies := c.client.Jar.Cookies(urlURL)
-	fmt.Println("Cookie: ")
-	for _, cookie := range cookies {
-		fmt.Println(*cookie)
-	}
 
-	resp, err := c.get(location)
+	resp, err := c.getWithReferer(location, "https://idp.shizuoka.ac.jp/")
 	if err != nil {
 		return err
 	}
@@ -117,10 +116,6 @@ func (c *Client) login(reqUrl, username, password string) error {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
 	fmt.Println(resp.Request.Header)
-	b, _ := io.ReadAll(resp.Body)
-	if strings.Contains(string(b), "不正な操作") {
-		return errors.New("は？")
-	}
 
 	return nil
 }

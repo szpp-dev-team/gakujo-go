@@ -1,11 +1,12 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"net/http/cookiejar"
+	"net/http/httputil"
+	"strings"
 	"time"
-
-	"golang.org/x/net/publicsuffix"
 )
 
 const (
@@ -20,9 +21,7 @@ type Client struct {
 
 func NewClient() *Client {
 	jar, _ := cookiejar.New(
-		&cookiejar.Options{
-			PublicSuffixList: publicsuffix.List,
-		},
+		nil,
 	)
 	httpClient := http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -43,8 +42,10 @@ func (c *Client) request(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	//c.jar.SetCookies(resp.Request.URL, resp.Cookies())
+	b, _ := httputil.DumpResponse(resp, true)
+	if strings.Contains(string(b), "不正な操作") {
+		return nil, errors.New("不正な操作が行われました")
+	}
 
 	return resp, nil
 }
