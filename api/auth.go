@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -119,9 +118,8 @@ func (c *Client) login(reqUrl, username, password string) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
-	// fmt.Fprintln(os.Stderr, resp.Request.Header)
 
-	return nil
+	return c.initialize()
 }
 
 func (c *Client) postSSOexecution(reqUrl, username, password string) (io.ReadCloser, error) {
@@ -174,6 +172,23 @@ func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (str
 	return resp.Header.Get("Location"), nil
 }
 
+func (c *Client) initialize() error {
+	reqURL := "https://gakujo.shizuoka.ac.jp/portal/home/home/initialize"
+
+	params := make(url.Values)
+	params.Set("EXCLUDE_SET", "")
+
+	resp, err := c.postForm(reqURL, params)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+	}
+
+	return nil
+}
+
 // return RelayState, SAMLResponse
 func scrapRelayStateAndSAMLResponse(htmlReader io.ReadCloser) (string, string, error) {
 	doc, err := goquery.NewDocumentFromReader(htmlReader)
@@ -183,12 +198,12 @@ func scrapRelayStateAndSAMLResponse(htmlReader io.ReadCloser) (string, string, e
 	selection := doc.Find("html > body > form > div > input")
 	relayState, ok := selection.Attr("value")
 	if !ok {
-		return "", "", errors.New("RelayState was not found")
+		return "", "", &ErrorNotFound{Name: "RelayState"}
 	}
 	selection = selection.Next()
 	samlResponse, ok := selection.Attr("value")
 	if !ok {
-		return "", "", errors.New("SAMLResponse was not found")
+		return "", "", &ErrorNotFound{Name: "SAMLResponse"}
 	}
 
 	return relayState, samlResponse, nil
