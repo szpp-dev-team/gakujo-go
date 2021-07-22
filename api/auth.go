@@ -41,6 +41,7 @@ func (c *Client) fetchGakujoPortalJSESSIONID() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -54,6 +55,7 @@ func (c *Client) fetchGakujoRootJSESSIONID() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -69,6 +71,7 @@ func (c *Client) preLogin() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -81,11 +84,11 @@ func (c *Client) fetchLoginAPIurl() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("Redilect to", url)
 	resp, err := c.get(url)
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusFound {
 		return "", fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -101,21 +104,22 @@ func (c *Client) login(reqUrl, username, password string) error {
 	if err != nil {
 		return err
 	}
+	htmlReadCloser.Close()
 
 	location, err := c.fetchSSOinitLoginLocation(relayState, samlResponse)
 	if err != nil {
 		return err
 	}
-	fmt.Println("Redilect to:", location)
 
 	resp, err := c.getWithReferer(location, "https://idp.shizuoka.ac.jp/")
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
-	fmt.Println(resp.Request.Header)
+	// fmt.Fprintln(os.Stderr, resp.Request.Header)
 
 	return nil
 }
@@ -144,6 +148,7 @@ func (c *Client) fetchSSOSAMLRequestLocation() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusFound {
 		return "", fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -161,6 +166,7 @@ func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (str
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusFound {
 		return "", fmt.Errorf("%s\nResponse status was %d(expect %d)", reqUrl, resp.StatusCode, http.StatusFound)
 	}
@@ -175,8 +181,6 @@ func scrapRelayStateAndSAMLResponse(htmlReader io.ReadCloser) (string, string, e
 		return "", "", err
 	}
 	selection := doc.Find("html > body > form > div > input")
-	html, _ := selection.Html()
-	fmt.Println(html)
 	relayState, ok := selection.Attr("value")
 	if !ok {
 		return "", "", errors.New("RelayState was not found")
