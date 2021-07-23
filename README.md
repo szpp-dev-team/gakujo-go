@@ -34,7 +34,8 @@ if err := client.Login(username, password); err != nil {
 
 ### Home
 
-とりあえずホーム画面から **お知らせ** と **未提出課題一覧** を取得します。
+ホーム画面から **お知らせ** と **未提出課題一覧** を取得します。  
+これで事足りるとは思っていますが、追加で欲しいものがある場合は issue に投げてください。
 
 ```go
 homeInfo, _ := client.Home()
@@ -52,10 +53,10 @@ for _, notice := range homeInfo.NoticeRows {
 
 ```go
 type TaskRow struct {
-	Type     TaskType  // 課題のタイプ
-	Deadline time.Time // 締め切り日時
-	Name     string    // 課題名
-	Index    int       // index
+    Type     TaskType  // 課題のタイプ
+    Deadline time.Time // 締め切り日時
+    Name     string    // 課題名
+    Index    int       // index
 }
 ```
 
@@ -63,13 +64,13 @@ type TaskRow struct {
 
 ```go
 type NoticeRow struct {
-	Type        NoticeType    // お知らせのタイプ
-	SubType     SubNoticeType // お知らせのサブタイプ
-	important   bool          // 重要ラベルの有無
-	Date        time.Time     // お知らせが届いた日
-	Title       string        // タイトル
-	Affiliation string        // 所属
-	Index       int           // index
+    Type        NoticeType    // お知らせのタイプ
+    SubType     SubNoticeType // お知らせのサブタイプ
+    Important   bool          // 重要ラベルの有無
+    Date        time.Time     // お知らせが届いた日
+    Title       string        // タイトル
+    Affiliation string        // 所属
+    Index       int           // index
 }
 ```
 
