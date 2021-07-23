@@ -38,7 +38,10 @@ func (c *Client) Home() (HomeInfo, error) {
 	if err != nil {
 		return HomeInfo{}, err
 	}
-	defer body.Close()
+	defer func() {
+		body.Close()
+		_, _ = io.Copy(io.Discard, body)
+	}()
 	b, _ := io.ReadAll(body)
 	taskRows, err := scrapTasks(io.NopCloser(bytes.NewBuffer(b)))
 	if err != nil {

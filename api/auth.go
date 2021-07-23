@@ -40,7 +40,10 @@ func (c *Client) fetchGakujoPortalJSESSIONID() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -54,7 +57,10 @@ func (c *Client) fetchGakujoRootJSESSIONID() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -70,7 +76,10 @@ func (c *Client) preLogin() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -87,7 +96,10 @@ func (c *Client) fetchLoginAPIurl() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
 	if resp.StatusCode != http.StatusFound {
 		return "", fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -104,6 +116,7 @@ func (c *Client) login(reqUrl, username, password string) error {
 		return err
 	}
 	htmlReadCloser.Close()
+	_, _ = io.Copy(io.Discard, htmlReadCloser)
 
 	location, err := c.fetchSSOinitLoginLocation(relayState, samlResponse)
 	if err != nil {
@@ -114,7 +127,10 @@ func (c *Client) login(reqUrl, username, password string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -146,7 +162,10 @@ func (c *Client) fetchSSOSAMLRequestLocation() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
 	if resp.StatusCode != http.StatusFound {
 		return "", fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
@@ -164,7 +183,10 @@ func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (str
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
 	if resp.StatusCode != http.StatusFound {
 		return "", fmt.Errorf("%s\nResponse status was %d(expect %d)", reqUrl, resp.StatusCode, http.StatusFound)
 	}
@@ -182,6 +204,10 @@ func (c *Client) initialize() error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
