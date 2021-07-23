@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/szpp-dev-team/gakujo-api/scrape"
 )
 
 func (c *Client) Login(username, password string) error {
@@ -111,7 +111,7 @@ func (c *Client) login(reqUrl, username, password string) error {
 	if err != nil {
 		return err
 	}
-	relayState, samlResponse, err := scrapRelayStateAndSAMLResponse(htmlReadCloser)
+	relayState, samlResponse, err := scrape.RelayStateAndSAMLResponse(htmlReadCloser)
 	if err != nil {
 		return err
 	}
@@ -213,24 +213,4 @@ func (c *Client) initialize() error {
 	}
 
 	return nil
-}
-
-// return RelayState, SAMLResponse
-func scrapRelayStateAndSAMLResponse(htmlReader io.ReadCloser) (string, string, error) {
-	doc, err := goquery.NewDocumentFromReader(htmlReader)
-	if err != nil {
-		return "", "", err
-	}
-	selection := doc.Find("html > body > form > div > input")
-	relayState, ok := selection.Attr("value")
-	if !ok {
-		return "", "", &ErrorNotFound{Name: "RelayState"}
-	}
-	selection = selection.Next()
-	samlResponse, ok := selection.Attr("value")
-	if !ok {
-		return "", "", &ErrorNotFound{Name: "SAMLResponse"}
-	}
-
-	return relayState, samlResponse, nil
 }

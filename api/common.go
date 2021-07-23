@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/szpp-dev-team/gakujo-api/scrape"
 )
 
 const (
@@ -20,10 +20,6 @@ const (
 	IdpHostName       = "https://idp.shizuoka.ac.jp"
 	GeneralPurposeUrl = "https://gakujo.shizuoka.ac.jp/portal/common/generalPurpose/"
 )
-
-type ErrorNotFound struct {
-	Name string
-}
 
 type Client struct {
 	client *http.Client
@@ -55,16 +51,19 @@ func (c *Client) request(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 	b, _ := io.ReadAll(resp.Body)
-	token, err := scrapApacheToken(io.NopCloser(bytes.NewReader(b)))
+
+	// これクソコード
+	token, err := scrape.ApacheToken(io.NopCloser(bytes.NewReader(b)))
 	if err != nil {
 		switch err.(type) {
-		case *ErrorNotFound:
+		case *scrape.ErrorNotFound:
 			fmt.Fprintln(os.Stderr, err.Error())
 		default:
 			return nil, err
 		}
 	}
 	c.token = token
+
 	if strings.Contains(string(b), "不正な操作") {
 		return nil, errors.New("不正な操作が行われました")
 	}
@@ -114,27 +113,4 @@ func saveCookies(url *url.URL, cookies *[]http.Cookie) error {
 		_, _ = file.WriteString(fmt.Sprintf("%v=%v\n", cookie.Name, cookie.Value))
 	}
 	return nil
-}
-
-func (err *ErrorNotFound) Error() string {
-	return fmt.Sprintf("%v was not found", err.Name)
-}
-
-func scrapApacheToken(htmlReader io.ReadCloser) (string, error) {
-	// ページによってtokenの場所が違う場合
-	selectors := []string{
-		"#header > form:nth-child(4) > div > input[type=hidden]",
-	}
-	doc, err := goquery.NewDocumentFromReader(htmlReader)
-	if err != nil {
-		return "", err
-	}
-	for _, selector := range selectors {
-		selection := doc.Find(selector)
-		token, ok := selection.Attr("value")
-		if ok {
-			return token, nil
-		}
-	}
-	return "", &ErrorNotFound{Name: "org.apache.struts.taglib.html.TOKEN"}
 }

@@ -1,8 +1,31 @@
-package api
+package model
 
 import (
 	"fmt"
+	"time"
 )
+
+type HomeInfo struct {
+	TaskRows   []TaskRow   // 未提出課題一覧
+	NoticeRows []NoticeRow // お知らせ
+}
+
+type TaskRow struct {
+	Type     TaskType
+	Deadline time.Time
+	Name     string
+	Index    int
+}
+
+type NoticeRow struct {
+	Type        NoticeType
+	SubType     SubNoticeType
+	Important   bool
+	Date        time.Time
+	Title       string
+	Affiliation string
+	Index       int
+}
 
 type TaskType int
 
