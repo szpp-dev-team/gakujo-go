@@ -79,7 +79,7 @@ func ToNoticetype(nt string) (NoticeType, error) {
 		return NTMiniTest, nil
 	case "授業アンケート":
 		return NTClassSurvey, nil
-	case "学内アンケート":
+	case "学内ｱﾝｹｰﾄ": // これ頭おかしいよ・・・
 		return NTCampusSurvey, nil
 	case "レポート":
 		return NTReport, nil
@@ -95,10 +95,12 @@ func ToNoticetype(nt string) (NoticeType, error) {
 type SubNoticeType int
 
 const (
-	SNTRegist         SubNoticeType = iota // 登録
-	SNTTeacherContact                      // 教員連絡
-	SNTReminder                            // 催促
-	SNTNone                                // なし
+	SNTRegist            SubNoticeType = iota // 登録
+	SNTTeacherContact                         // 教員連絡
+	SNTReminder                               // 催促
+	SNTComment                                // コメント
+	SNTChangeLectureRoom                      // 講義室変更
+	SNTNone                                   // なし
 )
 
 func (snt SubNoticeType) String() string {
@@ -109,20 +111,28 @@ func (snt SubNoticeType) String() string {
 		return "授業連絡"
 	case SNTReminder:
 		return "催促"
+	case SNTComment:
+		return "コメント"
+	case SNTChangeLectureRoom:
+		return "講義室変更"
 	default:
 		return ""
 	}
 }
 
-func ToSubNoticetype(snt string) (SubNoticeType, error) {
+func ToSubNoticetype(snt string) SubNoticeType {
 	switch snt {
 	case "登録":
-		return SNTRegist, nil
+		return SNTRegist
 	case "教員連絡":
-		return SNTTeacherContact, nil
+		return SNTTeacherContact
 	case "催促":
-		return SNTReminder, nil
+		return SNTReminder
+	case "コメント":
+		return SNTComment
+	case "講義室変更":
+		return SNTChangeLectureRoom
 	default:
-		return 0, fmt.Errorf("%v is undefined", snt)
+		return SNTNone
 	}
 }

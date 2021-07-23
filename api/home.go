@@ -166,15 +166,7 @@ func scrapTitleLine(s string) (SubNoticeType, bool, string, error) {
 	if bigText == "重要" {
 		important = true
 	}
-	snt := SNTNone
-	if squText != "" {
-		var err error
-		snt, err = ToSubNoticetype(squText)
-		if err != nil {
-			return 0, false, "", err
-		}
-	}
-	return snt, important, title, nil
+	return ToSubNoticetype(squText), important, title, nil
 }
 
 func (c *Client) fetchHomeHtml() (io.ReadCloser, error) {
