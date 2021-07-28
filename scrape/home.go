@@ -2,6 +2,7 @@ package scrape
 
 import (
 	"io"
+	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -121,4 +122,9 @@ func parseTitleLine(s string) (model.SubNoticeType, bool, string, error) {
 		important = true
 	}
 	return model.ToSubNoticetype(squText), important, title, nil
+}
+
+func hoge() {
+	strings.Replace(s string, "<div>", "", -1)
+	strings.Replace(s string, "</div>", "\n", -1)
 }
