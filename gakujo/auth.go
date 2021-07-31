@@ -69,10 +69,10 @@ func (c *Client) fetchGakujoRootJSESSIONID() error {
 }
 
 func (c *Client) preLogin() error {
-	params := url.Values{}
-	params.Set("mistakeChecker", "0")
+	datas := url.Values{}
+	datas.Set("mistakeChecker", "0")
 
-	resp, err := c.client.PostForm("https://gakujo.shizuoka.ac.jp/portal/login/preLogin/preLogin", params)
+	resp, err := c.client.PostForm("https://gakujo.shizuoka.ac.jp/portal/login/preLogin/preLogin", datas)
 	if err != nil {
 		return err
 	}
@@ -139,12 +139,12 @@ func (c *Client) login(reqUrl, username, password string) error {
 }
 
 func (c *Client) postSSOexecution(reqUrl, username, password string) (io.ReadCloser, error) {
-	params := make(url.Values)
-	params.Set("j_username", username)
-	params.Set("j_password", password)
-	params.Set("_eventId_proceed", "")
+	datas := make(url.Values)
+	datas.Set("j_username", username)
+	datas.Set("j_password", password)
+	datas.Set("_eventId_proceed", "")
 
-	resp, err := c.client.PostForm(reqUrl, params)
+	resp, err := c.client.PostForm(reqUrl, datas)
 	if err != nil {
 		return nil, err
 	}
@@ -175,11 +175,11 @@ func (c *Client) fetchSSOSAMLRequestLocation() (string, error) {
 func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (string, error) {
 	reqUrl := "https://gakujo.shizuoka.ac.jp/Shibboleth.sso/SAML2/POST"
 
-	params := make(url.Values)
-	params.Set("RelayState", relayState)
-	params.Set("SAMLResponse", samlResponse)
+	datas := make(url.Values)
+	datas.Set("RelayState", relayState)
+	datas.Set("SAMLResponse", samlResponse)
 
-	resp, err := c.client.PostForm(reqUrl, params)
+	resp, err := c.client.PostForm(reqUrl, datas)
 	if err != nil {
 		return "", err
 	}
@@ -197,20 +197,17 @@ func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (str
 func (c *Client) initialize() error {
 	reqURL := "https://gakujo.shizuoka.ac.jp/portal/home/home/initialize"
 
-	params := make(url.Values)
-	params.Set("EXCLUDE_SET", "")
+	datas := make(url.Values)
+	datas.Set("EXCLUDE_SET", "")
 
-	resp, err := c.postForm(reqURL, params)
+	rc, err := c.getPage(reqURL, datas)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		resp.Body.Close()
-		_, _ = io.Copy(io.Discard, resp.Body)
+		rc.Close()
+		_, _ = io.Copy(io.Discard, rc)
 	}()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
-	}
 
 	return nil
 }
