@@ -2,9 +2,7 @@ package gakujo
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 
 	"github.com/szpp-dev-team/gakujo-api/model"
@@ -36,21 +34,10 @@ func (c *Client) Home() (model.HomeInfo, error) {
 }
 
 func (c *Client) fetchHomeHtml() (io.ReadCloser, error) {
-	reqURL := GeneralPurposeUrl
+	datas := make(url.Values)
+	datas.Set("headTitle", "ホーム")
+	datas.Set("menuCode", "Z07") // TODO: menucode を定数化(まとめてやる)
+	datas.Set("nextPath", "/home/home/initialize")
 
-	params := make(url.Values)
-	params.Set("org.apache.struts.taglib.html.TOKEN", c.token)
-	params.Set("headTitle", "ホーム")
-	params.Set("menuCode", "Z07") // TODO: 定数化(まとめてやる)
-	params.Set("nextPath", "/home/home/initialize")
-
-	resp, err := c.postForm(reqURL, params)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
-	}
-
-	return resp.Body, nil
+	return c.getPage(GeneralPurposeUrl, datas)
 }
