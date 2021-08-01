@@ -2,6 +2,7 @@ package scrape
 
 import (
 	"io"
+	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -82,6 +83,13 @@ func NoticeRows(r io.Reader) ([]model.NoticeRow, error) {
 		return nil, err
 	}
 	return noticeRows, nil
+}
+
+func NoticeDetail(r io.Reader) (string, error) {
+	doc, _ := goquery.NewDocumentFromReader(r)
+	txt := doc.Find("#right-box > form > div.right-module-bold.mt15 > div > div > table > tbody").Text()
+	txt = strings.Replace(txt, "\n", " ", -1)
+	return txt, nil
 }
 
 // return (SubNoticeType, isImportant, title)

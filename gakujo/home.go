@@ -2,10 +2,7 @@ package gakujo
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 
 	"github.com/szpp-dev-team/gakujo-api/model"
@@ -13,7 +10,7 @@ import (
 )
 
 func (c *Client) Home() (model.HomeInfo, error) {
-	body, err := c.fetchNoiceDetailhtml()
+	body, err := c.fetchHomeHtml()
 	if err != nil {
 		return model.HomeInfo{}, err
 	}
@@ -37,23 +34,12 @@ func (c *Client) Home() (model.HomeInfo, error) {
 }
 
 func (c *Client) fetchHomeHtml() (io.ReadCloser, error) {
-	reqURL := GeneralPurposeUrl
+	datas := make(url.Values)
+	datas.Set("headTitle", "ホーム")
+	datas.Set("menuCode", "Z07") // TODO: menucode を定数化(まとめてやる)
+	datas.Set("nextPath", "/home/home/initialize")
 
-	params := make(url.Values)
-	params.Set("org.apache.struts.taglib.html.TOKEN", c.token)
-	params.Set("headTitle", "ホーム")
-	params.Set("menuCode", "Z07") // TODO: 定数化(まとめてやる)
-	params.Set("nextPath", "/home/home/initialize")
-
-	resp, err := c.postForm(reqURL, params)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
-	}
-
-	return resp.Body, nil
+	return c.getPage(GeneralPurposeUrl, datas)
 }
 
 func (c *Client) fetchNoiceDetailhtml() (io.ReadCloser, error) {
@@ -63,17 +49,5 @@ func (c *Client) fetchNoiceDetailhtml() (io.ReadCloser, error) {
 	params.Set("org.apache.struts.taglib.html.TOKEN", c.token)
 	params.Set("newsTargetIndexNo", "0")
 
-	resp, err := c.postForm(reqURL, params)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expext %d)", resp.StatusCode, http.StatusOK)
-	}
-	defer resp.Body.Close()
-
-	b, err := ioutil.ReadAll(resp.Body)
-
-	fmt.Println(string(b))
-	return resp.Body, nil
+	return c.getPage(reqURL, params)
 }

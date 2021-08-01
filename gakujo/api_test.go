@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/szpp-dev-team/gakujo-api/scrape"
 )
 
 var (
@@ -44,4 +45,16 @@ func TestHome(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(homeInfo)
+}
+
+func TestNoticeDetail(t *testing.T) {
+	c := NewClient()
+	if err := c.Login(username, password); err != nil {
+		t.Fatal(err)
+	}
+	t.Log("[Info]Login succeeded(took:", time.Since(begin), "ms)")
+	noticeDetailHtml, _ := c.fetchNoiceDetailhtml()
+	defer noticeDetailHtml.Close()
+	txt, _ := scrape.NoticeDetail(noticeDetailHtml)
+	fmt.Println(txt)
 }

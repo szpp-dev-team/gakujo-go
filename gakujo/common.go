@@ -36,7 +36,7 @@ func NewClient() *Client {
 			return http.ErrUseLastResponse
 		},
 		Jar:     jar,
-		Timeout: 30 * time.Second,
+		Timeout: 5 * time.Minute,
 	}
 	return &Client{
 		client: &httpClient,
@@ -52,24 +52,40 @@ func (c *Client) request(req *http.Request) (*http.Response, error) {
 	}
 	b, _ := io.ReadAll(resp.Body)
 
-	// これクソコード
-	token, err := scrape.ApacheToken(io.NopCloser(bytes.NewReader(b)))
-	if err != nil {
-		switch err.(type) {
-		case *scrape.ErrorNotFound:
-			fmt.Fprintln(os.Stderr, err.Error())
-		default:
-			return nil, err
-		}
-	}
-	c.token = token
-
+	// validation
 	if strings.Contains(string(b), "不正な操作") {
 		return nil, errors.New("不正な操作が行われました")
 	}
 
 	resp.Body = io.NopCloser(bytes.NewReader(b))
 	return resp, nil
+}
+
+// get page which needs org.apache.struts.taglib.html.TOKEN and save its token
+func (c *Client) getPage(url string, datas url.Values) (io.ReadCloser, error) {
+	datas.Set("org.apache.struts.taglib.html.TOKEN", c.token)
+
+	resp, err := c.postForm(url, datas)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Response status was %d(expext %d)", resp.StatusCode, http.StatusOK)
+	}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := scrape.ApacheToken(io.NopCloser(bytes.NewReader(b)))
+	if err != nil {
+		// getPage では必ず apache Token が含まれるページを取得するはず
+		return nil, err
+	}
+	c.token = token
+
+	return io.NopCloser(bytes.NewReader(b)), nil
 }
 
 // http.Get wrapper
