@@ -159,3 +159,17 @@ func ToSubNoticetype(snt string) SubNoticeType {
 		return SNTNone
 	}
 }
+
+type NoticeDetail struct {
+	Category            string
+	Title               string
+	Contact             string
+	Detail              string
+	Attachment          []string
+	FilelinkPublication bool
+	ReferenceURL        string
+	Important           bool
+	Date                time.Time
+	WebReturnRequest    bool
+	Affiliation         string
+}

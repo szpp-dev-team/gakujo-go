@@ -87,8 +87,9 @@ func NoticeRows(r io.Reader) ([]model.NoticeRow, error) {
 
 func NoticeDetail(r io.Reader) (string, error) {
 	doc, _ := goquery.NewDocumentFromReader(r)
-	txt := doc.Find("#right-box > form > div.right-module-bold.mt15 > div > div > table > tbody").Text()
-	txt = strings.Replace(txt, "\n", " ", -1)
+	txt := doc.Find("#right-box > form > div.right-module-bold.mt15 > div > div > table").Text()
+	//txt = strings.Replace(txt, "カテゴリ", " ", -1)
+	txt = strings.TrimSpace(txt)
 	return txt, nil
 }
 
@@ -130,6 +131,19 @@ func parseTitleLine(s string) (model.SubNoticeType, bool, string, error) {
 	}
 	return model.ToSubNoticetype(squText), important, title, nil
 }
+
+/*func parseDetialLine(s string) model.NoticeDetail {
+	count := 1
+	Text := " "
+	var noticedetail model.NoticeDetail
+	for _, c := range s {
+		if len(string(c)) > 0 {
+			Text += string(c)
+			continue
+		}
+	}
+	return noticedetail
+}*/
 
 /*func hoge() {
 	strings.Replace(s string, "<div>", "", -1)
