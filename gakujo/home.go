@@ -47,7 +47,7 @@ func (c *Client) fetchNoiceDetailhtml() (io.ReadCloser, error) {
 
 	params := make(url.Values)
 	params.Set("org.apache.struts.taglib.html.TOKEN", c.token)
-	params.Set("newsTargetIndexNo", "0")
+	params.Set("newsTargetIndexNo", "20")
 
 	return c.getPage(reqURL, params)
 }

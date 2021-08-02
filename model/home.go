@@ -165,7 +165,7 @@ type NoticeDetail struct {
 	Title               string
 	Contact             string
 	Detail              string
-	Attachment          []string
+	Attachment          string
 	FilelinkPublication bool
 	ReferenceURL        string
 	Important           bool
