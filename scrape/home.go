@@ -85,13 +85,51 @@ func NoticeRows(r io.Reader) ([]model.NoticeRow, error) {
 	return noticeRows, nil
 }
 
-func NoticeDetail(r io.Reader) (model.NoticeDetail, error) {
-	doc, _ := goquery.NewDocumentFromReader(r)
-	txt := doc.Find("#right-box > form > div.right-module-bold.mt15 > div > div > table").Text()
-	//txt = strings.Replace(txt, "カテゴリ", " ", -1)
-	txt = strings.TrimSpace(txt)
-	noticeDetail := parseDetialLine(txt)
-	return noticeDetail, nil
+func NoticeDetail(r io.Reader) (*model.NoticeDetail, error) {
+	doc, err := goquery.NewDocumentFromReader(r)
+	if err != nil {
+		return nil, err
+	}
+
+	var noticeDetail model.NoticeDetail
+	doc.Find("#right-box > form > div.right-module-bold.mt15 > div > div > table > tbody > tr").Each(func(i int, selection *goquery.Selection) {
+		switch {
+		case i == 0:
+			noticeDetail.Category = selection.Find("td").Text()
+		case i == 1:
+			noticeDetail.Title = selection.Find("td").Text()
+		case i == 2:
+			noticeDetail.Detail = selection.Find("td").Text()
+		case i == 3:
+			noticeDetail.Contact = selection.Find("td").Text()
+		case i == 4:
+			noticeDetail.Attachment = selection.Find("td").Text()
+		case i == 5:
+			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "公開しない")
+		case i == 6:
+			noticeDetail.ReferenceURL = selection.Find("td").Text()
+		case i == 7:
+			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "通常")
+		case i == 8:
+			rawText := strings.Replace(selection.Find("td").Text(), "指定日時に連絡する", " ", -1)
+			rawText = strings.TrimSpace(rawText)
+			date, inerr := time.Parse("2006/01/02 15:04", rawText)
+			if inerr != nil {
+				err = inerr
+				return
+			}
+			noticeDetail.Date = date
+		case i == 9:
+			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "返信を求めない")
+		case i == 10:
+			noticeDetail.Affiliation = selection.Find("td").Text()
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &noticeDetail, nil
 }
 
 // return (SubNoticeType, isImportant, title)
@@ -131,65 +169,6 @@ func parseTitleLine(s string) (model.SubNoticeType, bool, string, error) {
 		important = true
 	}
 	return model.ToSubNoticetype(squText), important, title, nil
-}
-
-func parseDetialLine(s string) model.NoticeDetail {
-	count := 1
-	element := []string{"カテゴリ", "タイトル", "連絡内容", "連絡元", "添付ファイル", "ファイルリンク公開", "参考URL", "重要度", "連絡日時", "WEB返信要求", "管理所属"}
-	var noticedetail model.NoticeDetail
-	for i := 0; i < len(element); i += 1 {
-		idx := strings.Index(s, element[i])
-		jdx := strings.Index(s, element[i+1])
-		switch {
-		case count == 1:
-			noticedetail.Category = s[idx:jdx]
-
-		case count == 2:
-			noticedetail.Title = s[idx:jdx]
-
-		case count == 3:
-			noticedetail.Contact = s[idx:jdx]
-
-		case count == 4:
-			noticedetail.Detail = s[idx:jdx]
-
-		case count == 5:
-			noticedetail.Attachment = s[idx:strings.Index(s, "一括ダウンロード")]
-
-		case count == 6:
-			if Bool := strings.Index(s[idx:jdx-1], "公開する"); Bool > 0 {
-				noticedetail.FilelinkPublication = true
-			} else {
-				noticedetail.FilelinkPublication = false
-			}
-
-		case count == 7:
-			noticedetail.ReferenceURL = s[idx:jdx]
-
-		case count == 8:
-			if Bool := strings.Index(s[idx:jdx-1], "重要"); Bool > 0 {
-				noticedetail.Important = true
-			} else {
-				noticedetail.Important = false
-			}
-
-		case count == 9:
-			date, _ := time.Parse("2006/01/02", s[idx+len(element[i]):jdx-1])
-			noticedetail.Date = date
-
-		case count == 10:
-			if Bool := strings.Index(s[idx:jdx-1], "返信を求めない"); Bool > 0 {
-				noticedetail.WebReturnRequest = false
-			} else {
-				noticedetail.WebReturnRequest = true
-			}
-
-		case count == 11:
-			noticedetail.Affiliation = s[idx:jdx]
-		}
-		count += 1
-	}
-	return noticedetail
 }
 
 /*func hoge() {
