@@ -42,14 +42,21 @@ func (c *Client) fetchHomeHtml() (io.ReadCloser, error) {
 	return c.getPage(GeneralPurposeUrl, datas)
 }
 
-func (c *Client) NoticeDetail() (model.NoticeDetail, error) {
-	noticeDetailHtml, _ := c.fetchNoiceDetailhtml()
-	defer noticeDetailHtml.Close()
-	noticeDetail, err := scrape.NoticeDetail(noticeDetailHtml)
+func (c *Client) NoticeDetail() (*model.NoticeDetail, error) {
+	body, err := c.fetchNoiceDetailhtml()
 	if err != nil {
-		return model.NoticeDetail{}, err
+		return &model.NoticeDetail{}, err
 	}
-	return *noticeDetail, nil
+	defer func() {
+		body.Close()
+		_, _ = io.Copy(io.Discard, body)
+	}()
+	b, _ := io.ReadAll(body)
+	noticeDetail, err := scrape.NoticeDetail(io.NopCloser(bytes.NewBuffer(b)))
+	if err != nil {
+		return &model.NoticeDetail{}, err
+	}
+	return noticeDetail, nil
 }
 
 func (c *Client) fetchNoiceDetailhtml() (io.ReadCloser, error) {
