@@ -45,3 +45,16 @@ func TestHome(t *testing.T) {
 	}
 	fmt.Println(homeInfo)
 }
+
+func TestReportList(t *testing.T) {
+	c := NewClient()
+	if err := c.Login(username, password); err != nil {
+		t.Fatal(err)
+	}
+	t.Log("[Info]Login succeeded(took:", time.Since(begin), "ms)")
+	reportListInfo, err := c.ReportList()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(reportListInfo)
+}
