@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/szpp-dev-team/gakujo-api/scrape"
 )
 
 var (
@@ -54,9 +53,7 @@ func TestNoticeDetail(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("[Info]Login succeeded(took:", time.Since(begin), "ms)")
-	noticeDetailHtml, _ := c.fetchNoiceDetailhtml()
-	defer noticeDetailHtml.Close()
-	noticeDetail, err := scrape.NoticeDetail(noticeDetailHtml)
+	noticeDetail, err := c.NoticeDetail()
 	if err != nil {
 		t.Fatal(err)
 	}
