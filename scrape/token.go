@@ -10,6 +10,7 @@ func ApacheToken(htmlReader io.ReadCloser) (string, error) {
 	// ページによってtokenの場所が違う場合
 	selectors := []string{
 		"#header > form:nth-child(4) > div > input[type=hidden]",
+		"#header > form:nth-child(3) > div > input[type=hidden]",
 	}
 	doc, err := goquery.NewDocumentFromReader(htmlReader)
 	if err != nil {

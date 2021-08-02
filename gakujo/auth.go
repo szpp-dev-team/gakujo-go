@@ -27,19 +27,47 @@ func (c *Client) Login(username, password string) error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusFound {
-		return fmt.Errorf("Response status was %d(expect %d or %d)", resp.StatusCode, http.StatusOK, http.StatusFound)
+	if resp.StatusCode != http.StatusFound {
+		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusFound)
 	}
 
-	// セッションがないとき
-	if resp.StatusCode == http.StatusFound {
-		loginAPIurl, err := c.fetchLoginAPIurl(resp.Header.Get("Location"))
-		if err != nil {
-			return err
-		}
-		if err := c.login(IdpHostName+loginAPIurl, username, password); err != nil {
-			return err
-		}
+	loginAPIurl, err := c.fetchLoginAPIurl(resp.Header.Get("Location"))
+	if err != nil {
+		return err
+	}
+	if err := c.login(IdpHostName+loginAPIurl, username, password); err != nil {
+		return err
+	}
+	if err := c.initialize(); err != nil {
+		return err
+	}
+
+	return c.DumpCookies()
+}
+
+// 実装サボりました
+// Login() と被ってるコードはまとめなければ
+func (c *Client) LoadCookiesAndLogin() error {
+	if err := c.LoadCookies(); err != nil {
+		return err
+	}
+	if err := c.fetchGakujoPortalJSESSIONID(); err != nil {
+		return err
+	}
+
+	if err := c.fetchGakujoRootJSESSIONID(); err != nil {
+		return err
+	}
+
+	if err := c.preLogin(); err != nil {
+		return err
+	}
+	resp, err := c.shibbolethlogin()
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
 
 	return c.initialize()

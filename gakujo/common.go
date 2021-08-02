@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -22,9 +21,9 @@ const (
 )
 
 type Client struct {
-	client *http.Client
-	jar    *cookiejar.Jar
-	token  string // org.apache.struts.taglib.html.TOKEN
+	client     *http.Client
+	cookieJars []CookieJarJSON
+	token      string // org.apache.struts.taglib.html.TOKEN
 }
 
 func NewClient() *Client {
@@ -40,7 +39,6 @@ func NewClient() *Client {
 	}
 	return &Client{
 		client: &httpClient,
-		jar:    jar,
 	}
 }
 
@@ -55,6 +53,11 @@ func (c *Client) request(req *http.Request) (*http.Response, error) {
 	// validation
 	if strings.Contains(string(b), "不正な操作") {
 		return nil, errors.New("不正な操作が行われました")
+	}
+
+	cookies := c.client.Jar.Cookies(req.URL)
+	if err := c.saveCookies(req.URL, cookies); err != nil {
+		return nil, err
 	}
 
 	resp.Body = io.NopCloser(bytes.NewReader(b))
@@ -118,15 +121,4 @@ func (c *Client) postForm(url string, datas url.Values) (*http.Response, error) 
 	}
 
 	return resp, nil
-}
-
-func saveCookies(url *url.URL, cookies *[]http.Cookie) error {
-	file, err := os.Create("cookies")
-	if err != nil {
-		return err
-	}
-	for _, cookie := range *cookies {
-		_, _ = file.WriteString(fmt.Sprintf("%v=%v\n", cookie.Name, cookie.Value))
-	}
-	return nil
 }
