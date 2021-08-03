@@ -45,7 +45,7 @@ func (c *Client) fetchHomeHtml() (io.ReadCloser, error) {
 func (c *Client) NoticeDetail() (*model.NoticeDetail, error) {
 	body, err := c.fetchNoiceDetailhtml()
 	if err != nil {
-		return &model.NoticeDetail{}, err
+		return nil, err
 	}
 	defer func() {
 		body.Close()
@@ -54,7 +54,7 @@ func (c *Client) NoticeDetail() (*model.NoticeDetail, error) {
 	b, _ := io.ReadAll(body)
 	noticeDetail, err := scrape.NoticeDetail(io.NopCloser(bytes.NewBuffer(b)))
 	if err != nil {
-		return &model.NoticeDetail{}, err
+		return nil, err
 	}
 	return noticeDetail, nil
 }
@@ -63,7 +63,7 @@ func (c *Client) fetchNoiceDetailhtml() (io.ReadCloser, error) {
 	reqURL := "https://gakujo.shizuoka.ac.jp/portal/portaltopcommon/newsForTop/deadLineForTop"
 
 	params := make(url.Values)
-	params.Set("newsTargetIndexNo", "20")
+	params.Set("newsTargetIndexNo", "0")
 
 	return c.getPage(reqURL, params)
 }

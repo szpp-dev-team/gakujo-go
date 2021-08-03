@@ -92,25 +92,25 @@ func NoticeDetail(r io.Reader) (*model.NoticeDetail, error) {
 	}
 
 	var noticeDetail model.NoticeDetail
-	doc.Find("#right-box > form > div.right-module-bold.mt15 > div > div > table > tbody > tr").Each(func(i int, selection *goquery.Selection) {
+	doc.Find("#right-box > form > div.right-module-bold.mt15 > div > div > div > table.ttb_entry > tbody > tr").Each(func(i int, selection *goquery.Selection) {
 		switch {
-		case i == 0:
-			noticeDetail.Category = selection.Find("td").Text()
 		case i == 1:
-			noticeDetail.Title = selection.Find("td").Text()
+			noticeDetail.Category = selection.Find("td").Text()
 		case i == 2:
-			noticeDetail.Detail = selection.Find("td").Text()
+			noticeDetail.Title = selection.Find("td").Text()
 		case i == 3:
-			noticeDetail.Contact = selection.Find("td").Text()
+			noticeDetail.Detail = selection.Find("td").Text()
 		case i == 4:
-			noticeDetail.Attachment = selection.Find("td").Text()
+			noticeDetail.Contact = selection.Find("td").Text()
 		case i == 5:
-			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "公開しない")
+			noticeDetail.Attachment = selection.Find("td").Text()
 		case i == 6:
-			noticeDetail.ReferenceURL = selection.Find("td").Text()
+			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "公開しない")
 		case i == 7:
-			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "通常")
+			noticeDetail.ReferenceURL = selection.Find("td").Text()
 		case i == 8:
+			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "通常")
+		case i == 9:
 			rawText := strings.Replace(selection.Find("td").Text(), "指定日時に連絡する", " ", -1)
 			rawText = strings.TrimSpace(rawText)
 			date, inerr := time.Parse("2006/01/02 15:04", rawText)
