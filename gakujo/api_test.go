@@ -96,3 +96,16 @@ func TestNoticeDetail(t *testing.T) {
 
 	}
 }
+
+func TestClassNoticeRow(t *testing.T) {
+	c := NewClient()
+	if err := c.Login(username, password); err != nil {
+		t.Fatal(err)
+	}
+	t.Log("[Info]Login succeeded(took:", time.Since(begin), "ms)")
+	classNoticeRow, err := c.ClassNotice()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(classNoticeRow)
+}

@@ -161,15 +161,25 @@ func ToSubNoticetype(snt string) SubNoticeType {
 }
 
 type NoticeDetail struct {
-	Category            string //カテゴリ
-	Title               string //タイトル
-	Detail              string //連絡内容
-	Contact             string //連絡元
-	Attachment          string// 添付ファイル
-	FilelinkPublication bool//ファイルリンク公開
-	ReferenceURL        string//参照URL
-	Important           bool//重要度
-	Date                time.Time//日時
-	WebReturnRequest    bool//WEB返信要求
-	Affiliation         string//管理所属
+	Category            string    //カテゴリ
+	Title               string    //タイトル
+	Detail              string    //連絡内容
+	Contact             string    //連絡元
+	Attachment          string    // 添付ファイル
+	FilelinkPublication bool      //ファイルリンク公開
+	ReferenceURL        string    //参照URL
+	Important           bool      //重要度
+	Date                time.Time //日時
+	WebReturnRequest    bool      //WEB返信要求
+	Affiliation         string    //管理所属
+}
+
+type ClassNoticeRow struct {
+	Courses       string    //授業科目
+	Teachers_name string    //担当教員名
+	Title         string    //タイトル
+	Type          TaskType  //連絡種別
+	TargetDate    time.Time //対象日
+	Date          time.Time //連絡日時
+
 }
