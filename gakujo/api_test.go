@@ -107,5 +107,16 @@ func TestClassNoticeRow(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	fmt.Println(classNoticeRow)
+	for _, noticerow := range classNoticeRow {
+
+		fmt.Println(strings.TrimSpace(noticerow.Courses))
+		fmt.Println(strings.TrimSpace(noticerow.TeachersName))
+		fmt.Println(strings.TrimSpace(noticerow.Title))
+		fmt.Println(strings.TrimSpace(noticerow.Type))
+		fmt.Println(noticerow.TargetDate)
+		fmt.Println(noticerow.Date)
+		fmt.Println(" ")
+	}
 }

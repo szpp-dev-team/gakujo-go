@@ -173,13 +173,3 @@ type NoticeDetail struct {
 	WebReturnRequest    bool      //WEB返信要求
 	Affiliation         string    //管理所属
 }
-
-type ClassNoticeRow struct {
-	Courses       string    //授業科目
-	Teachers_name string    //担当教員名
-	Title         string    //タイトル
-	Type          TaskType  //連絡種別
-	TargetDate    time.Time //対象日
-	Date          time.Time //連絡日時
-
-}

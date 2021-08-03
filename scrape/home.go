@@ -132,19 +132,6 @@ func NoticeDetail(r io.Reader) (*model.NoticeDetail, error) {
 	return &noticeDetail, nil
 }
 
-func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
-	doc, err := goquery.NewDocumentFromReader(r)
-	if err != nil {
-		return nil, err
-	}
-
-	classNoticeRow := make([]model.ClassNoticeRow, 0)
-	doc.Find("#tbl_news > tbody > tr").Each(func(i int, selection *goquery.Selection) {
-	})
-
-	return classNoticeRow, err
-}
-
 // return (SubNoticeType, isImportant, title)
 func parseTitleLine(s string) (model.SubNoticeType, bool, string, error) {
 	big := false
