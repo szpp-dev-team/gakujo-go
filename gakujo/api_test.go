@@ -61,3 +61,15 @@ func TestSeisekiRows(t *testing.T) {
 		fmt.Println(*row)
 	}
 }
+
+func TestDepartmentGpa(t *testing.T) {
+	kc, err := c.NewKyoumuClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dgpa, err := kc.DepartmentGpa()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(*dgpa)
+}

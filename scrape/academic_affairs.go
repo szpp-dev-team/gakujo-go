@@ -32,6 +32,68 @@ func SeisekiRows(r io.Reader) ([]*model.SeisekiRow, error) {
 	return seisekiRows, err
 }
 
+func DepartmentGpa(r io.Reader) (*model.DepartmentGpa, error) {
+	doc, err := goquery.NewDocumentFromReader(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return scrapeGpaTrRow(doc.Find("table.txt12 > tbody:nth-child(1)"))
+}
+
+func scrapeGpaTrRow(s *goquery.Selection) (*model.DepartmentGpa, error) {
+	var (
+		departmentGpa model.DepartmentGpa
+		err           error
+	)
+	replacer := strings.NewReplacer("\n", "", "\t", "", " ", "")
+	s.Find("tr").EachWithBreak(func(i int, ins *goquery.Selection) bool {
+		text := replacer.Replace(ins.Find("td:nth-child(2)").Text())
+
+		switch i {
+		case 0:
+		case 1, 2, 3:
+			gpa, inerr := strconv.ParseFloat(text, 64)
+			if inerr != nil {
+				err = inerr
+				return false
+			}
+			switch i {
+			case 1:
+				departmentGpa.Gpa = gpa
+			case 2:
+				departmentGpa.FirstGPA = gpa
+			case 3:
+				departmentGpa.SecondGPA = gpa
+			}
+		case 4:
+			t, inerr := time.Parse("2006年01月02日", text)
+			if inerr != nil {
+				err = inerr
+				return false
+			}
+			departmentGpa.CalcDate = t
+		case 5, 6:
+			var rank, num int
+			if _, inerr := fmt.Sscanf(text, "%d人中　%d位", &num, &rank); inerr != nil {
+				err = inerr
+				return false
+			}
+			switch i {
+			case 5:
+				departmentGpa.DepartmentNum = num
+				departmentGpa.DepartmentRank = rank
+			case 6:
+				departmentGpa.CourseNum = num
+				departmentGpa.CourseRank = rank
+			}
+		}
+		return true
+	})
+
+	return &departmentGpa, err
+}
+
 func scrapeSeisekiTrRow(s *goquery.Selection) (*model.SeisekiRow, error) {
 	var (
 		seisekiRow model.SeisekiRow

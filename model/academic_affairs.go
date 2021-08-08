@@ -19,6 +19,18 @@ type SeisekiRow struct {
 	//TestType           string      // 試験種別 よくわからないので保留
 }
 
+type DepartmentGpa struct {
+	Gpa            float64   // 累積 gpa
+	FirstGPA       float64   // 前期 gpa
+	SecondGPA      float64   // 後期 gpa
+	CalcDate       time.Time // 最終 gpa 算出日
+	DepartmentRank int       // 学科内順位
+	DepartmentNum  int       // 学科内人数
+	CourseRank     int       // コース内順位
+	CourseNum      int       // コース内人数
+	Year           int       // 年
+}
+
 type SubjectType int
 
 const (
