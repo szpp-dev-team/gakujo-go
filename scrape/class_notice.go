@@ -7,6 +7,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/szpp-dev-team/gakujo-api/model"
+	"github.com/szpp-dev-team/gakujo-api/util"
 )
 
 func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
@@ -14,14 +15,14 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 	if err != nil {
 		return nil, err
 	}
-	repleace := strings.NewReplacer("\t", "", "\n", "")
+	replace := strings.NewReplacer("\t", "", "\n", "")
 	classNoticeRows := make([]model.ClassNoticeRow, 0)
 	doc.Find("#tbl_A01_01 > tbody > tr").Each(func(i int, selection *goquery.Selection) {
 
 		targetDate := strings.TrimSpace(selection.Find("td:nth-child(6)").Text())
 
 		dateText := selection.Find("td:nth-child(7)").Text()
-		date, inerr := time.Parse("2006/01/02 15:04", dateText)
+		date, inerr := util.Parse2400("2006/01/02 15:04", dateText)
 		if inerr != nil {
 			err = inerr
 			return
@@ -33,15 +34,15 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 		snt := selection.Find("td:nth-child(5)").Text()
 
 		if len(targetDate) != 0 {
-			targetdate, inerr := time.Parse("2006/01/02", targetDate)
+			targetdate, inerr := util.Parse2400("2006/01/02", targetDate)
 			if inerr != nil {
 				err = inerr
 				return
 			}
 			classNoticeRow := model.ClassNoticeRow{
-				CourseName:   strings.TrimSpace(repleace.Replace(courseName)),
+				CourseName:   strings.TrimSpace(replace.Replace(courseName)),
 				TeachersName: strings.TrimSpace(teachersName),
-				Title:        strings.TrimSpace(repleace.Replace(title)),
+				Title:        strings.TrimSpace(replace.Replace(title)),
 				Type:         strings.TrimSpace(snt),
 				TargetDate:   targetdate,
 				Date:         date,
@@ -51,9 +52,9 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 		} else {
 			var targetdate time.Time
 			classNoticeRow := model.ClassNoticeRow{
-				CourseName:   strings.TrimSpace(repleace.Replace(courseName)),
+				CourseName:   strings.TrimSpace(replace.Replace(courseName)),
 				TeachersName: strings.TrimSpace(teachersName),
-				Title:        strings.TrimSpace(repleace.Replace(title)),
+				Title:        strings.TrimSpace(replace.Replace(title)),
 				Type:         strings.TrimSpace(snt),
 				TargetDate:   targetdate,
 				Date:         date,

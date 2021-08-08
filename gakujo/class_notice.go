@@ -12,7 +12,7 @@ import (
 func (c *Client) ClassNotice() ([]model.ClassNoticeRow, error) {
 	body, err := c.fetchClassNoticeRow()
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
 	defer func() {
 		body.Close()
@@ -21,9 +21,9 @@ func (c *Client) ClassNotice() ([]model.ClassNoticeRow, error) {
 	b, _ := io.ReadAll(body)
 	classNoticeRow, err := scrape.ClassNoticeRow(io.NopCloser(bytes.NewBuffer(b)))
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
-	return  classNoticeRow, err
+	return classNoticeRow, err
 }
 
 func (c *Client) fetchClassNoticeRow() (io.ReadCloser, error) {
