@@ -45,3 +45,23 @@ func TestHome(t *testing.T) {
 	}
 	fmt.Println(homeInfo)
 }
+
+func TestSeisekiRows(t *testing.T) {
+	c := NewClient()
+	if err := c.Login(username, password); err != nil {
+		t.Fatal(err)
+	}
+	t.Log("[Info]Login succeeded(took:", time.Since(begin), "ms)")
+
+	kc, err := c.NewKyoumuClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows, err := kc.SeisekiRows()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		fmt.Println(*row)
+	}
+}
