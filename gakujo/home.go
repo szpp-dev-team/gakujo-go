@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"net/url"
+	"strconv"
 
 	"github.com/szpp-dev-team/gakujo-api/model"
 	"github.com/szpp-dev-team/gakujo-api/scrape"
@@ -42,8 +43,8 @@ func (c *Client) fetchHomeHtml() (io.ReadCloser, error) {
 	return c.getPage(GeneralPurposeUrl, datas)
 }
 
-func (c *Client) NoticeDetail() (*model.NoticeDetail, error) {
-	body, err := c.fetchNoiceDetailhtml()
+func (c *Client) NoticeDetail(index int) (*model.NoticeDetail, error) {
+	body, err := c.fetchNoiceDetailhtml(index)
 	if err != nil {
 		return nil, err
 	}
@@ -59,11 +60,11 @@ func (c *Client) NoticeDetail() (*model.NoticeDetail, error) {
 	return noticeDetail, nil
 }
 
-func (c *Client) fetchNoiceDetailhtml() (io.ReadCloser, error) {
+func (c *Client) fetchNoiceDetailhtml(index int) (io.ReadCloser, error) {
 	reqURL := "https://gakujo.shizuoka.ac.jp/portal/portaltopcommon/newsForTop/deadLineForTop"
+	TargetIndexNO := strconv.Itoa(index)
+	datas := make(url.Values)
+	datas.Set("newsTargetIndexNo", TargetIndexNO)
 
-	params := make(url.Values)
-	params.Set("newsTargetIndexNo", "0")
-
-	return c.getPage(reqURL, params)
+	return c.getPage(reqURL, datas)
 }

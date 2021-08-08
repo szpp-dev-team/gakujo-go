@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -53,45 +52,40 @@ func TestNoticeDetail(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("[Info]Login succeeded(took:", time.Since(begin), "ms)")
-	noticeDetail, err := c.NoticeDetail()
+	index := 3
+	noticeDetail, err := c.NoticeDetail(index)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i := 0; i < 11; i++ {
 		switch {
 		case i == 0:
-			fmt.Print("カテゴリー  ")
-			fmt.Println(strings.TrimSpace(noticeDetail.Category))
+			fmt.Print("連絡種別  ")
+			fmt.Println(noticeDetail.ContactType)
 		case i == 1:
 			fmt.Print("タイトル  ")
-			fmt.Println(strings.TrimSpace(noticeDetail.Title))
+			fmt.Println(noticeDetail.Title)
 		case i == 2:
 			fmt.Print("連絡内容  ")
-			fmt.Println(strings.TrimSpace(noticeDetail.Detail))
+			fmt.Println(noticeDetail.Detail)
 		case i == 3:
-			fmt.Print("連絡元  ")
-			fmt.Println(strings.TrimSpace(noticeDetail.Contact))
+			fmt.Print("ファイル  ")
+			fmt.Println(noticeDetail.File)
 		case i == 4:
-			fmt.Print("添付ファイル  ")
-			fmt.Println(strings.TrimSpace(noticeDetail.Attachment))
-		case i == 5:
 			fmt.Print("ファイルリンク公開  ")
 			fmt.Println(noticeDetail.FilelinkPublication)
-		case i == 6:
+		case i == 5:
 			fmt.Print("参照URL  ")
-			fmt.Println(strings.TrimSpace(noticeDetail.ReferenceURL))
-		case i == 7:
+			fmt.Println(noticeDetail.ReferenceURL)
+		case i == 6:
 			fmt.Print("重要度  ")
 			fmt.Println(noticeDetail.Important)
-		case i == 8:
+		case i == 7:
 			fmt.Print("日時  ")
 			fmt.Println(noticeDetail.Date)
-		case i == 9:
+		case i == 8:
 			fmt.Print("WEB返信要求  ")
 			fmt.Println(noticeDetail.WebReturnRequest)
-		case i == 10:
-			fmt.Print("管理所属  ")
-			fmt.Println(strings.TrimSpace(noticeDetail.Affiliation))
 		}
 
 	}
@@ -107,15 +101,18 @@ func TestClassNoticeRow(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	fmt.Println(classNoticeRow)
 	for _, noticerow := range classNoticeRow {
-
-		fmt.Println(strings.TrimSpace(noticerow.Courses))
-		fmt.Println(strings.TrimSpace(noticerow.TeachersName))
-		fmt.Println(strings.TrimSpace(noticerow.Title))
-		fmt.Println(strings.TrimSpace(noticerow.Type))
+		fmt.Print("授業科目  ")
+		fmt.Println(noticerow.CourseName)
+		fmt.Print("担当教員名  ")
+		fmt.Println(noticerow.TeachersName)
+		fmt.Print("タイトル  ")
+		fmt.Println(noticerow.Title)
+		fmt.Print("連絡種別  ")
+		fmt.Println(noticerow.Type)
+		fmt.Print("対象日  ")
 		fmt.Println(noticerow.TargetDate)
+		fmt.Print("連絡日時  ")
 		fmt.Println(noticerow.Date)
 		fmt.Println(" ")
 	}

@@ -27,7 +27,7 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 			return
 		}
 
-		courses := selection.Find("td:nth-child(2)").Text()
+		courseName := selection.Find("td:nth-child(2)").Text()
 		teachersName := selection.Find("td:nth-child(3)").Text()
 		title := selection.Find("td:nth-child(4)").Text()
 		snt := selection.Find("td:nth-child(5)").Text()
@@ -39,9 +39,9 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 				return
 			}
 			classNoticeRow := model.ClassNoticeRow{
-				Courses:      strings.TrimSpace(courses),
+				CourseName:      strings.Replace(strings.TrimSpace(courseName), "\t", "", -1),
 				TeachersName: strings.TrimSpace(teachersName),
-				Title:        strings.TrimSpace(title),
+				Title:        strings.Replace(strings.Replace(strings.TrimSpace(title), "\t", "", -1), "\n", "", -1),
 				Type:         strings.TrimSpace(snt),
 				TargetDate:   targetdate,
 				Date:         date,
@@ -49,17 +49,11 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 			}
 			classNoticeRows = append(classNoticeRows, classNoticeRow)
 		} else {
-			dateText := selection.Find("td:nth-child(7)").Text()
-			date, inerr := time.Parse("2006/01/02 15:04", dateText)
-			if inerr != nil {
-				err = inerr
-				return
-			}
 			var targetdate time.Time
 			classNoticeRow := model.ClassNoticeRow{
-				Courses:      strings.TrimSpace(courses),
+				CourseName:      strings.Replace(strings.Replace(strings.TrimSpace(courseName), "\t", "", -1), "\n", "", -1),
 				TeachersName: strings.TrimSpace(teachersName),
-				Title:        strings.TrimSpace(title),
+				Title:        strings.Replace(strings.Replace(strings.TrimSpace(title), "\t", "", -1), "\n", "", -1),
 				Type:         strings.TrimSpace(snt),
 				TargetDate:   targetdate,
 				Date:         date,
@@ -72,9 +66,4 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 		return nil, err
 	}
 	return classNoticeRows, err
-}
-
-func ClassNoticeRow2(r io.Reader) (string, error) {
-	doc, err := goquery.NewDocumentFromReader(r)
-	return strings.TrimSpace(doc.Find("#tbl_A01_01 > tbody > tr:nth-child(1) > td:nth-child(6)").Text()), err
 }

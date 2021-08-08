@@ -94,24 +94,22 @@ func NoticeDetail(r io.Reader) (*model.NoticeDetail, error) {
 	var noticeDetail model.NoticeDetail
 	doc.Find("#right-box > form > div.right-module-bold.mt15 > div > div > div > table.ttb_entry > tbody > tr").Each(func(i int, selection *goquery.Selection) {
 		switch {
+		case i == 0:
+			noticeDetail.ContactType = strings.TrimSpace(selection.Find("td").Text())
 		case i == 1:
-			noticeDetail.Category = selection.Find("td").Text()
+			noticeDetail.Title = strings.TrimSpace(selection.Find("td").Text())
 		case i == 2:
-			noticeDetail.Title = selection.Find("td").Text()
+			noticeDetail.Detail = strings.TrimSpace(selection.Find("td").Text())
 		case i == 3:
-			noticeDetail.Detail = selection.Find("td").Text()
+			noticeDetail.File = strings.TrimSpace(selection.Find("td").Text())
 		case i == 4:
-			noticeDetail.Contact = selection.Find("td").Text()
-		case i == 5:
-			noticeDetail.Attachment = selection.Find("td").Text()
-		case i == 6:
 			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "公開しない")
+		case i == 5:
+			noticeDetail.ReferenceURL = strings.TrimSpace(selection.Find("td").Text())
+		case i == 6:
+			noticeDetail.Important = !strings.Contains(selection.Find("td").Text(), "通常")
 		case i == 7:
-			noticeDetail.ReferenceURL = selection.Find("td").Text()
-		case i == 8:
-			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "通常")
-		case i == 9:
-			rawText := strings.Replace(selection.Find("td").Text(), "指定日時に連絡する", " ", -1)
+			rawText := strings.Replace(selection.Find("td").Text(), "即時通知", "", -1)
 			rawText = strings.TrimSpace(rawText)
 			date, inerr := time.Parse("2006/01/02 15:04", rawText)
 			if inerr != nil {
@@ -119,10 +117,8 @@ func NoticeDetail(r io.Reader) (*model.NoticeDetail, error) {
 				return
 			}
 			noticeDetail.Date = date
-		case i == 9:
-			noticeDetail.FilelinkPublication = !strings.Contains(selection.Find("td").Text(), "返信を求めない")
-		case i == 10:
-			noticeDetail.Affiliation = selection.Find("td").Text()
+		case i == 8:
+			noticeDetail.WebReturnRequest = !strings.Contains(selection.Find("td").Text(), "返信を求めない")
 		}
 	})
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 )
 
 type ClassNoticeRow struct {
-	Courses      string    //授業科目
+	CourseName      string    //授業科目
 	TeachersName string    //担当教員名
 	Title        string    //タイトル
 	Type         string    //連絡種別
