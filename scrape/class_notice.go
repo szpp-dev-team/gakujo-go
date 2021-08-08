@@ -14,7 +14,7 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	repleace := strings.NewReplacer("\t", "", "\n", "")
 	classNoticeRows := make([]model.ClassNoticeRow, 0)
 	doc.Find("#tbl_A01_01 > tbody > tr").Each(func(i int, selection *goquery.Selection) {
 
@@ -39,9 +39,9 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 				return
 			}
 			classNoticeRow := model.ClassNoticeRow{
-				CourseName:      strings.Replace(strings.TrimSpace(courseName), "\t", "", -1),
+				CourseName:   strings.TrimSpace(repleace.Replace(courseName)),
 				TeachersName: strings.TrimSpace(teachersName),
-				Title:        strings.Replace(strings.Replace(strings.TrimSpace(title), "\t", "", -1), "\n", "", -1),
+				Title:        strings.TrimSpace(repleace.Replace(title)),
 				Type:         strings.TrimSpace(snt),
 				TargetDate:   targetdate,
 				Date:         date,
@@ -51,9 +51,9 @@ func ClassNoticeRow(r io.Reader) ([]model.ClassNoticeRow, error) {
 		} else {
 			var targetdate time.Time
 			classNoticeRow := model.ClassNoticeRow{
-				CourseName:      strings.Replace(strings.Replace(strings.TrimSpace(courseName), "\t", "", -1), "\n", "", -1),
+				CourseName:   strings.TrimSpace(repleace.Replace(courseName)),
 				TeachersName: strings.TrimSpace(teachersName),
-				Title:        strings.Replace(strings.Replace(strings.TrimSpace(title), "\t", "", -1), "\n", "", -1),
+				Title:        strings.TrimSpace(repleace.Replace(title)),
 				Type:         strings.TrimSpace(snt),
 				TargetDate:   targetdate,
 				Date:         date,
