@@ -23,16 +23,26 @@ func (c *Client) Login(username, password string) error {
 	if err := c.preLogin(); err != nil {
 		return err
 	}
-	loginAPIurl, err := c.fetchLoginAPIurl()
+	resp, err := c.shibbolethlogin()
 	if err != nil {
 		return err
 	}
-
-	if err := c.login(IdpHostName+loginAPIurl, username, password); err != nil {
-		return err
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusFound {
+		return fmt.Errorf("Response status was %d(expect %d or %d)", resp.StatusCode, http.StatusOK, http.StatusFound)
 	}
 
-	return nil
+	// セッションがないとき
+	if resp.StatusCode == http.StatusFound {
+		loginAPIurl, err := c.fetchLoginAPIurl(resp.Header.Get("Location"))
+		if err != nil {
+			return err
+		}
+		if err := c.login(IdpHostName+loginAPIurl, username, password); err != nil {
+			return err
+		}
+	}
+
+	return c.initialize()
 }
 
 func (c *Client) fetchGakujoPortalJSESSIONID() error {
@@ -87,12 +97,8 @@ func (c *Client) preLogin() error {
 	return nil
 }
 
-func (c *Client) fetchLoginAPIurl() (string, error) {
-	url, err := c.fetchSSOSAMLRequestLocation()
-	if err != nil {
-		return "", err
-	}
-	resp, err := c.get(url)
+func (c *Client) fetchLoginAPIurl(SSOSAMLRequestURL string) (string, error) {
+	resp, err := c.get(SSOSAMLRequestURL)
 	if err != nil {
 		return "", err
 	}
@@ -135,7 +141,7 @@ func (c *Client) login(reqUrl, username, password string) error {
 		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
 
-	return c.initialize()
+	return nil
 }
 
 func (c *Client) postSSOexecution(reqUrl, username, password string) (io.ReadCloser, error) {
@@ -155,21 +161,13 @@ func (c *Client) postSSOexecution(reqUrl, username, password string) (io.ReadClo
 	return resp.Body, nil
 }
 
-func (c *Client) fetchSSOSAMLRequestLocation() (string, error) {
+func (c *Client) shibbolethlogin() (*http.Response, error) {
 	url := HostName + "/portal/shibbolethlogin/shibbolethLogin/initLogin/sso"
 	req, _ := http.NewRequest(http.MethodPost, url, nil)
 	resp, err := c.request(req)
-	if err != nil {
-		return "", err
-	}
-	defer func() {
-		resp.Body.Close()
-		_, _ = io.Copy(io.Discard, resp.Body)
-	}()
-	if resp.StatusCode != http.StatusFound {
-		return "", fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
-	}
-	return resp.Header.Get("Location"), nil
+	resp.Body.Close()
+	_, _ = io.Copy(io.Discard, resp.Body)
+	return resp, err
 }
 
 func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (string, error) {
