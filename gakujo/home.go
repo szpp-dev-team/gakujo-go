@@ -69,10 +69,9 @@ func (c *Client) fetchNoiceDetailhtml(index string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	datas := make(url.Values)
-	datas.Set("tbl_A01_01_length", "10")
-	datas.Set("schoolYear", "2021")
-	datas.Set("semesterCode", "1")
-	datas.Set("reportDateStart", "2021/02/01")
-	return c.getPage(reqUrl, datas)
+	data.Set("tbl_A01_01_length", "10")
+	data.Set("schoolYear", "2021")
+	data.Set("semesterCode", "1")
+	data.Set("reportDateStart", "2021/02/01")
+	return c.getPage(reqUrl, data)
 }
