@@ -52,7 +52,7 @@ func TestNoticeDetail(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("[Info]Login succeeded(took:", time.Since(begin), "ms)")
-	index := 3
+	index := "0"
 	noticeDetail, err := c.NoticeDetail(index)
 	if err != nil {
 		t.Fatal(err)

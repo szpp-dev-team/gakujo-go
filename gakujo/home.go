@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"net/url"
-	"strconv"
 
 	"github.com/szpp-dev-team/gakujo-api/model"
 	"github.com/szpp-dev-team/gakujo-api/scrape"
@@ -43,7 +42,7 @@ func (c *Client) fetchHomeHtml() (io.ReadCloser, error) {
 	return c.getPage(GeneralPurposeUrl, datas)
 }
 
-func (c *Client) NoticeDetail(index int) (*model.NoticeDetail, error) {
+func (c *Client) NoticeDetail(index string) (*model.NoticeDetail, error) {
 	body, err := c.fetchNoiceDetailhtml(index)
 	if err != nil {
 		return nil, err
@@ -60,11 +59,12 @@ func (c *Client) NoticeDetail(index int) (*model.NoticeDetail, error) {
 	return noticeDetail, nil
 }
 
-func (c *Client) fetchNoiceDetailhtml(index int) (io.ReadCloser, error) {
-	reqURL := "https://gakujo.shizuoka.ac.jp/portal/portaltopcommon/newsForTop/deadLineForTop"
-	TargetIndexNO := strconv.Itoa(index)
-	datas := make(url.Values)
-	datas.Set("newsTargetIndexNo", TargetIndexNO)
-
-	return c.getPage(reqURL, datas)
+func (c *Client) fetchNoiceDetailhtml(index string) (io.ReadCloser, error) {
+	reqUrl := "https://gakujo.shizuoka.ac.jp/portal/classcontact/classContactList/goDetail/" + index
+	data := make(url.Values)
+	data.Set("tbl_A01_01_length", "10")
+	data.Set("schoolYear", "2021")
+	data.Set("semesterCode", "1")
+	data.Set("reportDateStart", "2021/02/01")
+	return c.getPage(reqUrl, data)
 }
