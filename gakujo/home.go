@@ -62,9 +62,17 @@ func (c *Client) NoticeDetail(index string) (*model.NoticeDetail, error) {
 func (c *Client) fetchNoiceDetailhtml(index string) (io.ReadCloser, error) {
 	reqUrl := "https://gakujo.shizuoka.ac.jp/portal/classcontact/classContactList/goDetail/" + index
 	data := make(url.Values)
-	data.Set("tbl_A01_01_length", "10")
-	data.Set("schoolYear", "2021")
-	data.Set("semesterCode", "1")
-	data.Set("reportDateStart", "2021/02/01")
-	return c.getPage(reqUrl, data)
+	data.Set("headTitle", "授業連絡一覧")
+	data.Set("menuCode", "A01")
+	data.Set("nextPath", "/classcontact/classContactList/initialize")
+	_, err := c.getPage(GeneralPurposeUrl, data)
+	if err != nil {
+		return nil, err
+	}
+	datas := make(url.Values)
+	datas.Set("tbl_A01_01_length", "10")
+	datas.Set("schoolYear", "2021")
+	datas.Set("semesterCode", "1")
+	datas.Set("reportDateStart", "2021/02/01")
+	return c.getPage(reqUrl, datas)
 }
