@@ -171,8 +171,11 @@ func scrapeSeisekiTrRow(s *goquery.Selection) (*model.SeisekiRow, error) {
 				return false
 			}
 			seisekiRow.Date = date
+		case 10:
+			// fmt.Printf("i: 10 was ignored\n")
 		default:
-			fmt.Printf("i: %d was ignored\n", i)
+			err = fmt.Errorf("i: %d row is undefined", i)
+			return false
 		}
 		return true
 	})
