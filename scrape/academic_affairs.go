@@ -44,50 +44,66 @@ func DepartmentGpa(r io.Reader) (*model.DepartmentGpa, error) {
 func scrapeGpaTrRow(s *goquery.Selection) (*model.DepartmentGpa, error) {
 	var (
 		departmentGpa model.DepartmentGpa
+		termGPA       model.TermGpa = model.TermGpa{}
 		err           error
 	)
 	replacer := strings.NewReplacer("\n", "", "\t", "", " ", "")
 	s.Find("tr").EachWithBreak(func(i int, ins *goquery.Selection) bool {
+		if i == 0 {
+			return true
+		}
+		item := ins.Find("td:nth-child(1) > font").Text()
 		text := replacer.Replace(ins.Find("td:nth-child(2)").Text())
 
-		switch i {
-		case 0:
-		case 1, 2, 3:
-			gpa, inerr := strconv.ParseFloat(text, 64)
-			if inerr != nil {
-				err = inerr
-				return false
-			}
-			switch i {
-			case 1:
+		if strings.Contains(item, "GPA値") {
+			var (
+				year int
+				term string
+			)
+			gpa, _ := strconv.ParseFloat(text, 64)
+			if _, err := fmt.Sscanf(item, "%d年度　%s　GPA値", &year, &term); err != nil {
 				departmentGpa.Gpa = gpa
-			case 2:
-				departmentGpa.FirstGPA = gpa
-			case 3:
-				departmentGpa.SecondGPA = gpa
+			} else {
+				termGPA.Year = year
+				if term == "前期" {
+					termGPA.FirstGPA = gpa
+				} else if term == "後期" {
+					termGPA.SecondGPA = gpa
+
+					departmentGpa.TermGpas = append(departmentGpa.TermGpas, termGPA)
+					termGPA = model.TermGpa{}
+				}
 			}
-		case 4:
-			t, inerr := time.Parse("2006年01月02日", text)
-			if inerr != nil {
-				err = inerr
-				return false
+		} else {
+			if termGPA.FirstGPA != 0 {
+				departmentGpa.TermGpas = append(departmentGpa.TermGpas, termGPA)
+				termGPA = model.TermGpa{}
 			}
-			departmentGpa.CalcDate = t
-		case 5, 6:
-			var rank, num int
-			if _, inerr := fmt.Sscanf(text, "%d人中　%d位", &num, &rank); inerr != nil {
-				err = inerr
-				return false
-			}
-			switch i {
-			case 5:
-				departmentGpa.DepartmentNum = num
-				departmentGpa.DepartmentRank = rank
-			case 6:
-				departmentGpa.CourseNum = num
-				departmentGpa.CourseRank = rank
+
+			switch item {
+			case "最終GPA算出日":
+				t, inerr := time.Parse("2006年01月02日", text)
+				if inerr != nil {
+					err = inerr
+					return false
+				}
+				departmentGpa.CalcDate = t
+			case "同一学科内順位", "同一コース内順位":
+				var rank, num int
+				if _, inerr := fmt.Sscanf(text, "%d人中　%d位", &num, &rank); inerr != nil {
+					err = inerr
+					return false
+				}
+				if strings.Contains(item, "学科") {
+					departmentGpa.DepartmentNum = num
+					departmentGpa.DepartmentRank = rank
+				} else {
+					departmentGpa.CourseNum = num
+					departmentGpa.CourseRank = rank
+				}
 			}
 		}
+
 		return true
 	})
 
