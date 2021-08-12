@@ -99,7 +99,6 @@ func scrapeSeisekiTrRow(s *goquery.Selection) (*model.SeisekiRow, error) {
 		seisekiRow model.SeisekiRow
 		err        error
 	)
-	replacer := strings.NewReplacer("\n", "", "\t", "", " ", "")
 
 	s.Find("td").EachWithBreak(func(i int, ins *goquery.Selection) bool {
 		if seisekiRow.Grade == model.GradeType(model.GTPassed) && 6 <= i && i <= 8 {
@@ -114,7 +113,7 @@ func scrapeSeisekiTrRow(s *goquery.Selection) (*model.SeisekiRow, error) {
 		}()
 
 		text := elm.Text()
-		value := replacer.Replace(elm.AttrOr("title", text))
+		value := strings.ReplaceAll(strings.TrimSpace(elm.AttrOr("title", text)), "　", " ")
 		switch i {
 		case 0:
 			seisekiRow.SubjectName = value
