@@ -14,11 +14,11 @@ func TaskRows(r io.Reader) ([]model.TaskRow, error) {
 		return nil, err
 	}
 	taskRows := make([]model.TaskRow, 0)
-	doc.Find("#tbl_submission > tbody > tr").Each(func(i int, selection *goquery.Selection) {
+	doc.Find("#tbl_submission > tbody > tr").EachWithBreak(func(i int, selection *goquery.Selection) bool {
 		taskType, inerr := model.ToTasktype(selection.Find("td.arart > span > span").Text())
 		if inerr != nil {
 			err = inerr
-			return
+			return false
 		}
 		deadlineText := selection.Find("td.daytime").Text()
 		var deadline time.Time
@@ -26,7 +26,7 @@ func TaskRows(r io.Reader) ([]model.TaskRow, error) {
 			deadline, inerr = time.Parse("2006/01/02 15:04", deadlineText)
 			if inerr != nil {
 				err = inerr
-				return
+				return false
 			}
 		}
 		taskRow := model.TaskRow{
@@ -36,11 +36,9 @@ func TaskRows(r io.Reader) ([]model.TaskRow, error) {
 			Index:    i,
 		}
 		taskRows = append(taskRows, taskRow)
+		return true
 	})
-	if err != nil {
-		return nil, err
-	}
-	return taskRows, nil
+	return taskRows, err
 }
 
 func NoticeRows(r io.Reader) ([]model.NoticeRow, error) {
@@ -49,23 +47,23 @@ func NoticeRows(r io.Reader) ([]model.NoticeRow, error) {
 		return nil, err
 	}
 	noticeRows := make([]model.NoticeRow, 0)
-	doc.Find("#tbl_news > tbody > tr").Each(func(i int, selection *goquery.Selection) {
+	doc.Find("#tbl_news > tbody > tr").EachWithBreak(func(i int, selection *goquery.Selection) bool {
 		noticeType, inerr := model.ToNoticetype(selection.Find("td.arart > span > span > a").Text())
 		if inerr != nil {
 			err = inerr
-			return
+			return false
 		}
 		titleLine := selection.Find("td.title > a").Text()
 		snt, important, title, inerr := parseTitleLine(titleLine)
 		if inerr != nil {
 			err = inerr
-			return
+			return false
 		}
 		dateText := selection.Find("td.day").Text()
 		date, inerr := time.Parse("2006/01/02", dateText)
 		if inerr != nil {
 			err = inerr
-			return
+			return false
 		}
 		noticeRow := model.NoticeRow{
 			Type:        noticeType,
@@ -77,11 +75,10 @@ func NoticeRows(r io.Reader) ([]model.NoticeRow, error) {
 			Index:       i,
 		}
 		noticeRows = append(noticeRows, noticeRow)
+		return true
 	})
-	if err != nil {
-		return nil, err
-	}
-	return noticeRows, nil
+
+	return noticeRows, err
 }
 
 // return (SubNoticeType, isImportant, title)

@@ -44,6 +44,19 @@ func NewClient() *Client {
 	}
 }
 
+// search a cookie "JSESSIONID" from c.jar
+// if not found, return ""
+func (c *Client) SessionID() string {
+	u, _ := url.Parse(HostName)
+	for _, cookie := range c.jar.Cookies(u) {
+		if cookie.Name == "JSESSIONID" {
+			return cookie.Value
+		}
+	}
+
+	return ""
+}
+
 // save cookie "Set-Cookies" into client.cookie
 func (c *Client) request(req *http.Request) (*http.Response, error) {
 	resp, err := c.client.Do(req)
