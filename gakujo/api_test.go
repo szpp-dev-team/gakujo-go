@@ -116,5 +116,4 @@ func TestClassNoticeRow(t *testing.T) {
 		fmt.Println(noticerow.Date)
 		fmt.Println(" ")
 	}
-	c.Bot(classNoticeRow)
 }
