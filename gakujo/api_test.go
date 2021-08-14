@@ -118,6 +118,7 @@ func TestClassNoticeRow(t *testing.T) {
 		fmt.Println(noticerow.Date)
 		fmt.Println(" ")
 	}
+}
 
 func TestSeisekiRows(t *testing.T) {
 	kc, err := c.NewKyoumuClient()
