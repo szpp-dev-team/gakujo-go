@@ -159,3 +159,15 @@ func ToSubNoticetype(snt string) SubNoticeType {
 		return SNTNone
 	}
 }
+
+type NoticeDetail struct {
+	ContactType         string    //連絡種別
+	Title               string    //タイトル
+	Detail              string    //連絡内容
+	File                string    // ファイル
+	FilelinkPublication bool      //ファイルリンク公開
+	ReferenceURL        string    //参照URL
+	Important           bool      //重要度
+	Date                time.Time //日時
+	WebReturnRequest    bool      //WEB返信要求
+}
