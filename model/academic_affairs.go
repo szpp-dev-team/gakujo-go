@@ -36,6 +36,7 @@ type DepartmentGpa struct {
 }
 
 type ChusenRegistrationRow struct {
+	Index              int
 	Period             string             // 時限
 	SubjectName        string             // 科目名
 	ClassName          string             // クラス名
