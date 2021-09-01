@@ -145,3 +145,17 @@ func TestDepartmentGpa(t *testing.T) {
 	}
 	fmt.Println(*dgpa)
 }
+
+func TestChusenRegistrationRows(t *testing.T) {
+	kc, err := c.NewKyoumuClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows, err := kc.ChusenRegistrationRows()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		fmt.Printf("%+v\n", *row)
+	}
+}

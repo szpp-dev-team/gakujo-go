@@ -47,6 +47,14 @@ func (kc *KyoumuClient) DepartmentGpa() (*model.DepartmentGpa, error) {
 	return scrape.DepartmentGpa(bytes.NewBuffer(b))
 }
 
+func (kc *KyoumuClient) ChusenRegistrationRows() ([]*model.ChusenRegistrationRow, error) {
+	b, err := kc.c.fetchChusenRegistrationHtml()
+	if err != nil {
+		return nil, err
+	}
+	return scrape.ChusenRegistrationRows(bytes.NewReader(b))
+}
+
 func (c *Client) initializeShibboleth(renkeiType string) error {
 	reqUrl := "https://gakujo.shizuoka.ac.jp/portal/home/systemCooperationLink/initializeShibboleth?renkeiType=" + renkeiType
 	resp, err := c.postForm(
@@ -112,6 +120,30 @@ func (c *Client) fetchDepartmentGpaHtml() ([]byte, error) {
 	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
 	q := req.URL.Query()
 	q.Set("jsessionid", c.SessionID())
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := c.request(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Response status was %d(expected %d)", resp.StatusCode, http.StatusOK)
+	}
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
+	return io.ReadAll(resp.Body)
+}
+
+func (c *Client) fetchChusenRegistrationHtml() ([]byte, error) {
+	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/chuusenRishuuInit.do;"
+
+	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
+	q := req.URL.Query()
+	q.Set("jsessionid", c.SessionID())
+	q.Set("mainMenuCode", "019")
+	q.Set("parentMenuCode", "001")
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := c.request(req)
