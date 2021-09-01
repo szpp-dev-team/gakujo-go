@@ -247,7 +247,7 @@ func scrapeChusenRegistrationTrRow(s *goquery.Selection) (*model.ChusenRegistrat
 		return nil, err
 	}
 	chusenRegistrationRow.Credit = credit
-	attrName, exists := s.Find("td:nth-child(7)").Attr("name")
+	attrName, exists := s.Find("td:nth-child(7) > input").Attr("name")
 	if !exists {
 		return nil, errors.New("attr name was not found")
 	}

@@ -2,10 +2,13 @@ package gakujo
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/szpp-dev-team/gakujo-api/model"
 	"github.com/szpp-dev-team/gakujo-api/scrape"
@@ -53,6 +56,37 @@ func (kc *KyoumuClient) ChusenRegistrationRows() ([]*model.ChusenRegistrationRow
 		return nil, err
 	}
 	return scrape.ChusenRegistrationRows(bytes.NewReader(b))
+}
+
+func (kc *KyoumuClient) PostChusenRegistration(chusenRows []*model.ChusenRegistrationRow) error {
+	data := url.Values{}
+	data.Set("x", strconv.Itoa(rand.Int()%100))
+	data.Set("y", strconv.Itoa(rand.Int()%100))
+	data.Set("RisshuForm.jikanwariVector", "AA")
+
+	for i, chusenRow := range chusenRows {
+		if chusenRow == nil {
+			return fmt.Errorf("chusenRow(index: %d) is nil", i)
+		}
+		if chusenRow.ChoiceRank < 0 || 3 < chusenRow.ChoiceRank {
+			return errors.New("choice rank is out of range")
+		}
+		data.Set(chusenRow.AttrName, strconv.Itoa(chusenRow.ChoiceRank))
+	}
+
+	resp, err := kc.c.postForm("https://gakujo.shizuoka.ac.jp/kyoumu/chuusenRishuuRegist.do", data)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
+	if resp.StatusCode != http.StatusOK {
+		return util.RespStatusError(resp.StatusCode, http.StatusOK)
+	}
+
+	return nil
 }
 
 func (c *Client) initializeShibboleth(renkeiType string) error {
