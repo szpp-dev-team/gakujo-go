@@ -1,6 +1,7 @@
 package scrape
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -246,12 +247,17 @@ func scrapeChusenRegistrationTrRow(s *goquery.Selection) (*model.ChusenRegistrat
 		return nil, err
 	}
 	chusenRegistrationRow.Credit = credit
+	attrName, exists := s.Find("td:nth-child(7)").Attr("name")
+	if !exists {
+		return nil, errors.New("attr name was not found")
+	}
+	chusenRegistrationRow.AttrName = strings.TrimSpace(strings.TrimSpace(attrName))
 	choiceRank, err := scrapeChoiceRank(s)
 	if err != nil {
 		return nil, err
 	}
 	chusenRegistrationRow.ChoiceRank = choiceRank
-	capacity, err := strconv.Atoi(strings.TrimSpace(s.Find("td:nth-child(6) > font").Text()))
+	capacity, err := strconv.Atoi(strings.TrimSpace(s.Find("td:nth-child(11) > font").Text()))
 	if err != nil {
 		return nil, err
 	}
