@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -131,15 +130,4 @@ func (c *Client) postForm(url string, datas url.Values) (*http.Response, error) 
 	}
 
 	return resp, nil
-}
-
-func saveCookies(url *url.URL, cookies *[]http.Cookie) error {
-	file, err := os.Create("cookies")
-	if err != nil {
-		return err
-	}
-	for _, cookie := range *cookies {
-		_, _ = file.WriteString(fmt.Sprintf("%v=%v\n", cookie.Name, cookie.Value))
-	}
-	return nil
 }
