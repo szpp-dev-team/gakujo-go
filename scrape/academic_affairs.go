@@ -1,6 +1,7 @@
 package scrape
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -30,6 +31,35 @@ func SeisekiRows(r io.Reader) ([]*model.SeisekiRow, error) {
 		return true
 	})
 	return seisekiRows, err
+}
+
+func ChusenRegistrationRows(r io.Reader) ([]*model.ChusenRegistrationRow, error) {
+	doc, err := goquery.NewDocumentFromReader(r)
+	if err != nil {
+		return nil, err
+	}
+	chusenRegistrationRows := make([]*model.ChusenRegistrationRow, 0)
+	doc.Find("body > form > table").EachWithBreak(func(i int, s *goquery.Selection) bool {
+		if i == 0 {
+			return true
+		}
+		//tbody > tr > td > table > tbody > tr:nth-child(3)
+		s.Find("tbody > tr > td > table > tbody > tr").EachWithBreak(func(i int, s *goquery.Selection) bool {
+			if i < 2 {
+				return true
+			}
+			chusenRegistrationRow, inerr := scrapeChusenRegistrationTrRow(s)
+			if inerr != nil {
+				err = inerr
+				return false
+			}
+			chusenRegistrationRows = append(chusenRegistrationRows, chusenRegistrationRow)
+			return true
+		})
+		return err == nil
+	})
+
+	return chusenRegistrationRows, err
 }
 
 func DepartmentGpa(r io.Reader) (*model.DepartmentGpa, error) {
@@ -196,4 +226,90 @@ func scrapeSeisekiTrRow(s *goquery.Selection) (*model.SeisekiRow, error) {
 	})
 
 	return &seisekiRow, err
+}
+
+func scrapeChusenRegistrationTrRow(s *goquery.Selection) (*model.ChusenRegistrationRow, error) {
+	var (
+		chusenRegistrationRow model.ChusenRegistrationRow
+	)
+
+	chusenRegistrationRow.Period = strings.TrimSpace(s.Find("td:nth-child(1) > font").Text())
+	chusenRegistrationRow.SubjectName = strings.TrimSpace(s.Find("td:nth-child(2) > font > a").Text())
+	chusenRegistrationRow.ClassName = strings.TrimSpace(s.Find("td:nth-child(3) > font").Text())
+	chusenRegistrationRow.SubjectDistinction = strings.TrimSpace(s.Find("td:nth-child(4) > font").Text())
+	st, err := model.ToSubjectType(strings.TrimSpace(s.Find("td:nth-child(5) > font").Text()))
+	if err != nil {
+		return nil, err
+	}
+	chusenRegistrationRow.SubjectType = st
+	credit, err := strconv.Atoi(strings.TrimSpace(s.Find("td:nth-child(6) > font").Text()))
+	if err != nil {
+		return nil, err
+	}
+	chusenRegistrationRow.Credit = credit
+	attrName, exists := s.Find("td:nth-child(7) > input").Attr("name")
+	if !exists {
+		return nil, errors.New("attr name was not found")
+	}
+	chusenRegistrationRow.AttrName = strings.TrimSpace(strings.TrimSpace(attrName))
+	choiceRank, err := scrapeChoiceRank(s)
+	if err != nil {
+		return nil, err
+	}
+	chusenRegistrationRow.ChoiceRank = choiceRank
+	capacity, err := strconv.Atoi(strings.TrimSpace(s.Find("td:nth-child(11) > font").Text()))
+	if err != nil {
+		return nil, err
+	}
+	chusenRegistrationRow.Capacity = capacity
+	registrationStatus, err := scrapeRegistrationStatus(s)
+	if err != nil {
+		return nil, err
+	}
+	chusenRegistrationRow.RegistrationStatus = registrationStatus
+
+	return &chusenRegistrationRow, err
+}
+
+func scrapeChoiceRank(ins *goquery.Selection) (int, error) {
+	// [7:11] でスライスして ForEach させたかったけどよくわかんないのでクソコード置いておきます
+	_, exists := ins.Find("td:nth-child(7) > input").Attr("checked")
+	if exists {
+		return 0, nil
+	}
+	_, exists = ins.Find("td:nth-child(8) > input").Attr("checked")
+	if exists {
+		return 1, nil
+	}
+	_, exists = ins.Find("td:nth-child(9) > input").Attr("checked")
+	if exists {
+		return 2, nil
+	}
+	_, exists = ins.Find("td:nth-child(10) > input").Attr("checked")
+	if exists {
+		return 3, nil
+	}
+
+	return 0, fmt.Errorf("Something went wrong. You may set wrong selector.")
+}
+
+func scrapeRegistrationStatus(ins *goquery.Selection) (model.RegistrationStatus, error) {
+	first, err := strconv.Atoi(ins.Find("td:nth-child(12) > font").Text())
+	if err != nil {
+		return model.RegistrationStatus{}, err
+	}
+	second, err := strconv.Atoi(ins.Find("td:nth-child(13) > font").Text())
+	if err != nil {
+		return model.RegistrationStatus{}, err
+	}
+	third, err := strconv.Atoi(ins.Find("td:nth-child(14) > font").Text())
+	if err != nil {
+		return model.RegistrationStatus{}, err
+	}
+
+	return model.RegistrationStatus{
+		FirstChoiceNum:  first,
+		SecondChoiceNum: second,
+		ThirdChoiceNum:  third,
+	}, nil
 }

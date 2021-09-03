@@ -35,6 +35,25 @@ type DepartmentGpa struct {
 	CourseNum      int       // コース内人数
 }
 
+type ChusenRegistrationRow struct {
+	AttrName           string             // choiceName[i]
+	Period             string             // 時限
+	SubjectName        string             // 科目名
+	ClassName          string             // クラス名
+	SubjectDistinction string             // 科目区分
+	SubjectType        SubjectType        // 必修選択区分
+	Credit             int                // 単位
+	ChoiceRank         int                // 第n志望 0なら志望なし
+	Capacity           int                // 受講定員
+	RegistrationStatus RegistrationStatus // 履修登録状況
+}
+
+type RegistrationStatus struct {
+	FirstChoiceNum  int // 第1志望人数
+	SecondChoiceNum int // 第2志望人数
+	ThirdChoiceNum  int // 第3志望人数
+}
+
 type SubjectType int
 
 const (

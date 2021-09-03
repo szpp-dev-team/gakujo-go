@@ -145,3 +145,43 @@ func TestDepartmentGpa(t *testing.T) {
 	}
 	fmt.Println(*dgpa)
 }
+
+func TestChusenRegistrationRows(t *testing.T) {
+	kc, err := c.NewKyoumuClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows, err := kc.ChusenRegistrationRows()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		fmt.Printf("%+v\n", *row)
+	}
+}
+
+func TestPostChusenRegistration(t *testing.T) {
+	kc, err := c.NewKyoumuClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rows, err := kc.ChusenRegistrationRows()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println("=========== original ===========")
+	fmt.Printf("科目名: %s 第%d志望\n\n", rows[0].SubjectName, rows[0].ChoiceRank)
+
+	rows[0].ChoiceRank = 0
+	if err := kc.PostChusenRegistration(rows); err != nil {
+		t.Fatal(err)
+	}
+
+	rows, err = kc.ChusenRegistrationRows()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println("=========== new ===========")
+	fmt.Printf("科目名: %s 第%d志望\n\n", rows[0].SubjectName, rows[0].ChoiceRank)
+}
