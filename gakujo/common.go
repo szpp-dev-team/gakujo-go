@@ -2,7 +2,6 @@ package gakujo
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -62,14 +61,7 @@ func (c *Client) request(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	b, _ := io.ReadAll(resp.Body)
 
-	// validation
-	if strings.Contains(string(b), "不正な操作") {
-		return nil, errors.New("不正な操作が行われました")
-	}
-
-	resp.Body = io.NopCloser(bytes.NewReader(b))
 	return resp, nil
 }
 
