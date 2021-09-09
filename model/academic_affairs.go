@@ -3,6 +3,8 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -145,4 +147,56 @@ func ToGradeType(gt string) (GradeType, error) {
 	default:
 		return 0, fmt.Errorf("%v is undefined", gt)
 	}
+}
+
+type PostKamokuFormData struct {
+	Faculty       string // 学部番号。学籍番号の最初の2桁？
+	Department    string // 学科番号？
+	Course        string // コース番号
+	Grade         string // 学年
+	KamokuKbnCode string // 科目区分コード?
+	Req           string // ""
+	KamokuCode    string // 科目コード。シラバスでわかると思う
+	ClassCode     string // ?
+	Unit          string // 単位
+	Radio         string // 0-indexed の上から何番目のラジオボタンか
+	SelectKamoku  string // radio と同様？
+	Youbi         int
+	Jigen         int
+}
+
+// とりあえず B2 の情報科学科の生徒専用
+func NewPostKamokuFormData(kamokuCode, classCode string, unit, radio, youbi, jigen int) *PostKamokuFormData {
+	return &PostKamokuFormData{
+		Faculty:       "70",
+		Department:    "705",
+		Course:        "999",
+		Grade:         "2",
+		KamokuKbnCode: "",
+		Req:           "",
+		KamokuCode:    kamokuCode,
+		ClassCode:     classCode,
+		Unit:          strconv.Itoa(unit),
+		Radio:         strconv.Itoa(radio),
+		SelectKamoku:  strconv.Itoa(radio),
+		Youbi:         youbi,
+		Jigen:         jigen,
+	}
+}
+
+func (formData *PostKamokuFormData) FormData() url.Values {
+	data := url.Values{}
+	data.Set("faculty", formData.Faculty)
+	data.Set("department", formData.Department)
+	data.Set("course", formData.Course)
+	data.Set("grade", formData.Grade)
+	data.Set("kamokuKbnCode", formData.KamokuKbnCode)
+	data.Set("req", formData.Req)
+	data.Set("kamokuCode", formData.KamokuCode)
+	data.Set("classCode", formData.ClassCode)
+	data.Set("unit", formData.Unit)
+	data.Set("radio", formData.Radio)
+	data.Set("selectKamoku", formData.SelectKamoku)
+	return data
+
 }

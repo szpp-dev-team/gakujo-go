@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/szpp-dev-team/gakujo-api/model"
 )
 
 var (
@@ -184,4 +185,25 @@ func TestPostChusenRegistration(t *testing.T) {
 	}
 	fmt.Println("=========== new ===========")
 	fmt.Printf("科目名: %s 第%d志望\n\n", rows[0].SubjectName, rows[0].ChoiceRank)
+}
+
+func TestPostRishuRegistration(t *testing.T) {
+	// 火曜日・2限のとある科目(CSB2限定)
+	const (
+		kamokuCode = "77605250"
+		classCode  = "61"
+		unit       = 2
+		radio      = 0
+		youbi      = 2
+		jigen      = 2
+	)
+	kc, err := c.NewKyoumuClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	formData := model.NewPostKamokuFormData(kamokuCode, classCode, unit, radio, youbi, jigen)
+	if err := kc.PostRishuRegistration(formData); err != nil {
+		t.Fatal(err)
+	}
 }

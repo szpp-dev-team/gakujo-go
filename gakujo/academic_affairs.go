@@ -2,13 +2,15 @@ package gakujo
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
 
 	"github.com/szpp-dev-team/gakujo-api/model"
 	"github.com/szpp-dev-team/gakujo-api/scrape"
@@ -86,6 +88,64 @@ func (kc *KyoumuClient) PostChusenRegistration(chusenRows []*model.ChusenRegistr
 		return util.RespStatusError(resp.StatusCode, http.StatusOK)
 	}
 
+	return nil
+}
+
+type OverCapasityError struct {
+	message string
+}
+
+func (e OverCapasityError) Error() string {
+	return e.message
+}
+
+func (kc *KyoumuClient) PostRishuRegistration(formData *model.PostKamokuFormData) error {
+	// よくわからんけど登録 api までに経由するであろうページにアクセスしないと500 になる
+	if _, err := kc.c.fetchRishuInitHtml(); err != nil {
+		return err
+	}
+	if _, err := kc.c.fetchSearchKamokuInitHtml(formData.Youbi, formData.Jigen); err != nil {
+		return err
+	}
+	reqUrl := "https://gakujo.shizuoka.ac.jp/kyoumu/searchKamoku.do"
+	data := formData.FormData()
+	data.Set("button_kind.registKamoku.x", "16")
+	data.Set("button_kind.registKamoku.y", "10")
+	resp, err := kc.c.postForm(reqUrl, data)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
+	if resp.StatusCode != http.StatusOK {
+		return util.RespStatusError(resp.StatusCode, http.StatusOK)
+	}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(b))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	errMsg := doc.Find("font.txt12:nth-child(8) > ul:nth-child(1) > li:nth-child(1)").Text()
+	if errMsg == "定員数を超えているため、登録できません。" {
+		return errors.WithStack(OverCapasityError{errMsg})
+	}
+	if errMsg != "" {
+		return errors.WithStack(fmt.Errorf("unexpected error: %s", errMsg))
+	}
+	return nil
+}
+
+func (kc *KyoumuClient) GetRishuuInit() error {
+	b, err := kc.c.fetchRishuInitHtml()
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(b))
 	return nil
 }
 
@@ -178,6 +238,54 @@ func (c *Client) fetchChusenRegistrationHtml() ([]byte, error) {
 	q.Set("jsessionid", c.SessionID())
 	q.Set("mainMenuCode", "019")
 	q.Set("parentMenuCode", "001")
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := c.request(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Response status was %d(expected %d)", resp.StatusCode, http.StatusOK)
+	}
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
+	return io.ReadAll(resp.Body)
+}
+
+func (c *Client) fetchRishuInitHtml() ([]byte, error) {
+	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/rishuuInit.do"
+
+	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
+	q := req.URL.Query()
+	q.Set("jsessionid", c.SessionID())
+	q.Set("mainMenuCode", "002")
+	q.Set("parentMenuCode", "001")
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := c.request(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Response status was %d(expected %d)", resp.StatusCode, http.StatusOK)
+	}
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
+	return io.ReadAll(resp.Body)
+}
+
+func (c *Client) fetchSearchKamokuInitHtml(youbi, jigen int) ([]byte, error) {
+	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/searchKamokuInit.do"
+
+	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
+	q := req.URL.Query()
+	q.Set("jsessionid", c.SessionID())
+	q.Set("youbi", strconv.Itoa(youbi))
+	q.Set("jigen", strconv.Itoa(jigen))
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := c.request(req)
