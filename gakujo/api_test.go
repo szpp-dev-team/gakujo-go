@@ -61,6 +61,18 @@ func TestClassNoticeRow(t *testing.T) {
 	}
 }
 
+func TestAllClassNoticeRow(t *testing.T) {
+	opt := model.AllClassNoticeSearchOpt(2020)
+	classNoticeRow, err := c.ClassNoticeRows(opt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("%v records found\n", len(classNoticeRow))
+	for _, row := range classNoticeRow {
+		fmt.Printf("%+v\n", row)
+	}
+}
+
 func TestClassNoticeDetail(t *testing.T) {
 	opt := model.BasicClassNoticeSearchOpt(2021, model.ToSemesterCode("前期"), util.BasicTime(2021, 3, 1))
 	classNoticeRow, err := c.ClassNoticeRows(opt)

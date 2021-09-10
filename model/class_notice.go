@@ -4,6 +4,8 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/szpp-dev-team/gakujo-api/util"
 )
 
 type ClassNoticeRow struct {
@@ -23,6 +25,7 @@ type CourseDate struct {
 	Jigen1          int
 	Jigen2          int
 	SubSemesterCode SubSemesterCode
+	Other           string
 }
 
 type ClassNoticeDetail struct {
@@ -41,7 +44,8 @@ type ClassNoticeDetail struct {
 type SemesterCode int
 
 const (
-	EarlyPeriod SemesterCode = iota + 1
+	None        SemesterCode = iota
+	EarlyPeriod SemesterCode = iota
 	LaterPeriod
 )
 
@@ -52,7 +56,7 @@ func ToSemesterCode(s string) SemesterCode {
 	case "後期":
 		return LaterPeriod
 	default:
-		return 0
+		return None
 	}
 }
 
@@ -185,6 +189,37 @@ func BasicClassNoticeSearchOpt(
 	}
 }
 
+func AllClassNoticeSearchOpt(
+	year int,
+) *ClassNoticeSearchOption {
+	return &ClassNoticeSearchOption{
+		SchoolYear:                        year,
+		ReportDateStart:                   util.BasicTime(2011, 1, 1),
+		CheckSearchKeywordTeacherUserName: true,
+		CheckSearchKeywordSubjectName:     true,
+		CheckSearchKeywordTitle:           true,
+	}
+}
+
+var whiteList = map[string]struct{}{
+	"teacherCode":                       {},
+	"schoolYear":                        {},
+	"semesterCode":                      {},
+	"subjectDispCode":                   {},
+	"searchKeyWord":                     {},
+	"checkSearchKeywordTeacherUserName": {},
+	"checkSearchKeywordSubjectName":     {},
+	"checkSearchKeywordTitle":           {},
+	"contactKindCode":                   {},
+	"targetDateStart":                   {},
+	"targetDateEnd":                     {},
+	"reportDateStart":                   {},
+	"reportDateEnd":                     {},
+	"requireResponse":                   {},
+	"studentCode":                       {},
+	"studentName":                       {},
+}
+
 func (o ClassNoticeSearchOption) Formdata() *url.Values {
 	on := func(b bool) string {
 		if b {
@@ -208,7 +243,7 @@ func (o ClassNoticeSearchOption) Formdata() *url.Values {
 	data := url.Values{}
 	data.Set("teacherCode", o.TeacherCode)
 	data.Set("schoolYear", strconv.Itoa(o.SchoolYear))
-	data.Set("semesterCode", strconv.Itoa(int(o.SemesterCode)))
+	data.Set("semesterCode", zeroToNone(int(o.SemesterCode)))
 	data.Set("subjectDispCode", o.SubjectDispCode)
 	data.Set("searchKeyWord", o.SearchKeyWord)
 	data.Set("checkSearchKeywordTeacherUserName", on(o.CheckSearchKeywordTeacherUserName))
@@ -229,6 +264,9 @@ func (o ClassNoticeSearchOption) Formdata() *url.Values {
 
 	uniqueData := url.Values{}
 	for k, v := range data {
+		if _, ok := whiteList[k]; ok {
+			uniqueData.Set(k, v[0])
+		}
 		if v[0] != "" {
 			uniqueData.Set(k, v[0])
 		}

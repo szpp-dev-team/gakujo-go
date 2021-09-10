@@ -12,10 +12,20 @@ import (
 )
 
 func ClassNoticeRows(r io.Reader) ([]model.ClassNoticeRow, error) {
-	parseTime := func(s string) time.Time {
+	parseTime := func(s string) (time.Time, error) {
+		if s == "" {
+			return time.Time{}, nil
+		}
 		text := util.ReplaceAndTrim(s)
-		t, _ := time.Parse("2006/01/02 03:04", text)
-		return t
+		t, err := time.Parse("2006/01/02 15:04", text)
+		if err != nil {
+			t, err := time.Parse("2006/01/02", text)
+			if err != nil {
+				return time.Time{}, err
+			}
+			return t, nil
+		}
+		return t, nil
 	}
 
 	doc, err := goquery.NewDocumentFromReader(r)
@@ -36,8 +46,17 @@ func ClassNoticeRows(r io.Reader) ([]model.ClassNoticeRow, error) {
 		classNoticeRow.TeacherName = util.ReplaceAndTrim(s.Find("td:nth-child(3)").Text())
 		classNoticeRow.Title = util.ReplaceAndTrim(s.Find("td:nth-child(4) > a").Text())
 		classNoticeRow.ContactType = util.ReplaceAndTrim(s.Find("td:nth-child(5)").Text())
-		classNoticeRow.TargetDate = parseTime(s.Find("td:nth-child(6)").Text())
-		classNoticeRow.ContactDate = parseTime(s.Find("td:nth-child(7)").Text())
+		classNoticeRow.TargetDate, inerr = parseTime(s.Find("td:nth-child(6)").Text())
+		if inerr != nil {
+			err = inerr
+			return false
+		}
+		classNoticeRow.ContactDate, inerr = parseTime(s.Find("td:nth-child(7)").Text())
+		if inerr != nil {
+			fmt.Println(courseName)
+			err = inerr
+			return false
+		}
 		classNoticeRow.Index = i
 		classNoticeRows = append(classNoticeRows, classNoticeRow)
 		return true
@@ -108,6 +127,7 @@ func parseCourseDateFormat(s string) (*model.CourseDate, error) {
 		jigen1      int
 		jigen2      int
 		subSemester string
+		other       string
 	)
 
 	elms := strings.Split(s, "/")
@@ -119,7 +139,9 @@ func parseCourseDateFormat(s string) (*model.CourseDate, error) {
 	// 前期/水5・6
 	if _, err := fmt.Sscanf(elms[1], "%c%d・%d", &weekday, &jigen1, &jigen2); err != nil {
 		if _, err := fmt.Sscanf(elms[1], "%c%d・%d(%s)", &weekday, &jigen1, &jigen2, &subSemester); err != nil {
-			return nil, fmt.Errorf("invalid course date format: ===%s===", s)
+			if _, err := fmt.Sscanf(elms[1], "%s", &other); err != nil {
+				return nil, fmt.Errorf("invalid course date format: ===%s===", s)
+			}
 		}
 	}
 	return &model.CourseDate{
@@ -128,5 +150,6 @@ func parseCourseDateFormat(s string) (*model.CourseDate, error) {
 		Jigen1:          jigen1,
 		Jigen2:          jigen2,
 		SubSemesterCode: model.ToSubSemesterCode(subSemester),
+		Other:           other,
 	}, nil
 }
