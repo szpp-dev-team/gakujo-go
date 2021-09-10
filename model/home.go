@@ -7,8 +7,7 @@ import (
 )
 
 type HomeInfo struct {
-	TaskRows   []TaskRow   `json:"task_rows,omitempty"`   // 未提出課題一覧
-	NoticeRows []NoticeRow `json:"notice_rows,omitempty"` // お知らせ
+	TaskRows []TaskRow `json:"task_rows,omitempty"` // 未提出課題一覧
 }
 
 type TaskRow struct {
