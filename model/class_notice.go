@@ -185,25 +185,6 @@ func BasicClassNoticeSearchOpt(
 	}
 }
 
-var whiteList = map[string]struct{}{
-	"teacherCode":                       {},
-	"schoolYear":                        {},
-	"semesterCode":                      {},
-	"subjectDispCode":                   {},
-	"searchKeyWord":                     {},
-	"checkSearchKeywordTeacherUserName": {},
-	"checkSearchKeywordSubjectName":     {},
-	"checkSearchKeywordTitle":           {},
-	"contactKindCode":                   {},
-	"targetDateStart":                   {},
-	"targetDateEnd":                     {},
-	"reportDateStart":                   {},
-	"reportDateEnd":                     {},
-	"requireResponse":                   {},
-	"studentCode":                       {},
-	"studentName":                       {},
-}
-
 func (o ClassNoticeSearchOption) Formdata() *url.Values {
 	on := func(b bool) string {
 		if b {
@@ -245,16 +226,9 @@ func (o ClassNoticeSearchOption) Formdata() *url.Values {
 	data.Set("onlyAttachFile", on(o.OnlyAttachFile))
 	data.Set("studentCode", zeroToNone(o.StudentCode))
 	data.Set("studentName", o.StudentName)
-	data.Set("_searchConditionDisp.accordionSearchCondition", "true")
-	data.Set("_screenIdentifier", "SC_A01_01")
-	data.Set("_screenInfoDisp", "true")
-	data.Set("_scrollTop", "0")
 
 	uniqueData := url.Values{}
 	for k, v := range data {
-		if _, ok := whiteList[k]; ok {
-			uniqueData.Set(k, v[0])
-		}
 		if v[0] != "" {
 			uniqueData.Set(k, v[0])
 		}
