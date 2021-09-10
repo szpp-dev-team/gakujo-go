@@ -141,11 +141,10 @@ func (kc *KyoumuClient) PostRishuRegistration(formData *model.PostKamokuFormData
 }
 
 func (kc *KyoumuClient) GetRishuuInit() error {
-	b, err := kc.c.fetchRishuInitHtml()
+	_, err := kc.c.fetchRishuInitHtml()
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(b))
 	return nil
 }
 

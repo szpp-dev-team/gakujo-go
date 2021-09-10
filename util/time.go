@@ -35,3 +35,28 @@ func isHourOutErr(err error) bool {
 		return false
 	}
 }
+
+func ToWeekday(s rune) time.Weekday {
+	switch s {
+	case '月':
+		return time.Monday
+	case '火':
+		return time.Tuesday
+	case '水':
+		return time.Wednesday
+	case '木':
+		return time.Thursday
+	case '金':
+		return time.Friday
+	case '土':
+		return time.Saturday
+	case '日':
+		return time.Sunday
+	default:
+		return time.Sunday
+	}
+}
+
+func BasicTime(year, month, day int) time.Time {
+	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+}

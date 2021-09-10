@@ -25,3 +25,22 @@ func TestParse2400(t *testing.T) {
 		fmt.Println(parsedTime)
 	}
 }
+
+func TestReplaceAndTrim(t *testing.T) {
+	type Pair struct {
+		left  string
+		right string
+	}
+	testcases := []Pair{
+		{
+			"　　　Makabe　Mizuki is so cute",
+			"Makabe Mizuki is so cute",
+		},
+	}
+	for _, testcase := range testcases {
+		s := ReplaceAndTrim(testcase.left)
+		if s != testcase.right {
+			t.Fatalf("Expect %s but %s", testcase.right, s)
+		}
+	}
+}
