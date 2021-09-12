@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
 	"time"
@@ -56,87 +55,55 @@ type RegistrationStatus struct {
 	ThirdChoiceNum  int // 第3志望人数
 }
 
-type SubjectType int
+type SubjectType string
 
 const (
-	STCompulsory         SubjectType = iota // 必修
-	STElectiveCompulsory                    // 選択必修
-	STElective                              // 選択
+	STNone               = SubjectType("")
+	STCompulsory         = SubjectType("必修")   // 必修
+	STElectiveCompulsory = SubjectType("選択必修") // 選択必修
+	STElective           = SubjectType("選択")   // 選択
 )
 
-func (st SubjectType) String() string {
-	switch st {
-	case STCompulsory:
-		return "必修"
-	case STElective:
-		return "選択"
-	case STElectiveCompulsory:
-		return "選択必修"
-	default:
-		return "undefined"
-	}
-}
-
-func ToSubjectType(st string) (SubjectType, error) {
+func ToSubjectType(st string) SubjectType {
 	switch st {
 	case "必":
-		return SubjectType(STCompulsory), nil
+		return SubjectType(STCompulsory)
 	case "選択":
-		return SubjectType(STElective), nil
+		return SubjectType(STElective)
 	case "選必":
-		return SubjectType(STElectiveCompulsory), nil
+		return SubjectType(STElectiveCompulsory)
 	default:
-		return 0, fmt.Errorf("%v is undefined", st)
+		return SubjectType(STNone)
 	}
 }
 
-type GradeType int
+type GradeType string
 
-// TODO: ガバガバ英語をなんとかする
 const (
-	GTFailing   GradeType = iota // 不可
-	GTFair                       // 可
-	GTGood                       // 良
-	GTVerygood                   // 優
-	GTExcellent                  // 秀
-	GTPassed                     // 合
+	GTFailing   = GradeType("不可") // 不可
+	GTFair      = GradeType("可")  // 可
+	GTGood      = GradeType("良")  // 良
+	GTVerygood  = GradeType("優")  // 優
+	GTExcellent = GradeType("秀")  // 秀
+	GTPassed    = GradeType("合")  // 合
 )
 
-func (gt GradeType) String() string {
-	switch gt {
-	case GTFailing:
-		return "不可"
-	case GTFair:
-		return "可"
-	case GTGood:
-		return "良"
-	case GTVerygood:
-		return "優"
-	case GTExcellent:
-		return "秀"
-	case GTPassed:
-		return "合"
-	default:
-		return "undefined"
-	}
-}
-
-func ToGradeType(gt string) (GradeType, error) {
+func ToGradeType(gt string) GradeType {
 	switch gt {
 	case "不可":
-		return GradeType(GTFailing), nil
+		return GradeType(GTFailing)
 	case "可":
-		return GradeType(GTFair), nil
+		return GradeType(GTFair)
 	case "良":
-		return GradeType(GTGood), nil
+		return GradeType(GTGood)
 	case "優":
-		return GradeType(GTVerygood), nil
+		return GradeType(GTVerygood)
 	case "秀":
-		return GradeType(GTExcellent), nil
+		return GradeType(GTExcellent)
 	case "合":
-		return GradeType(GTPassed), nil
+		return GradeType(GTPassed)
 	default:
-		return 0, fmt.Errorf("%v is undefined", gt)
+		return ""
 	}
 }
 

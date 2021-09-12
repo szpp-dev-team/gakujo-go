@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -26,54 +25,39 @@ type NoticeRow struct {
 	Index       int
 }
 
-type TaskType int
+type TaskType string
 
 const (
-	TTMiniTest             TaskType = iota // 小テスト
-	TTClassSurvey                          // 授業アンケート
-	TTReport                               // レポート
-	TTLearningOutcomeSheet                 // 学習成果シート
+	TTMiniTest             = TaskType("小テスト")    // 小テスト
+	TTClassSurvey          = TaskType("授業アンケート") // 授業アンケート
+	TTReport               = TaskType("レポート")    // レポート
+	TTLearningOutcomeSheet = TaskType("学習成果シート") // 学習成果シート
 )
 
-func (tt TaskType) String() string {
-	switch tt {
-	case TTMiniTest:
-		return "小テスト"
-	case TTClassSurvey:
-		return "授業アンケート"
-	case TTReport:
-		return "レポート"
-	case TTLearningOutcomeSheet:
-		return "学習成果シート"
-	default:
-		return "undefined"
-	}
-}
-
-func ToTasktype(tt string) (TaskType, error) {
+func ToTasktype(tt string) TaskType {
 	switch tt {
 	case "小テスト":
-		return TTMiniTest, nil
+		return TTMiniTest
 	case "授業アンケート":
-		return TTClassSurvey, nil
+		return TTClassSurvey
 	case "レポート":
-		return TTReport, nil
+		return TTReport
 	case "学修成果シート":
-		return TTLearningOutcomeSheet, nil
+		return TTLearningOutcomeSheet
 	default:
-		return 0, fmt.Errorf("%v is undefined", tt)
+		return ""
 	}
 }
 
-type NoticeType int
+type NoticeType string
 
 const (
-	NTMiniTest      NoticeType = iota // 小テスト
-	NTClassSurvey                     // 授業アンケート
-	NTCampusSurvey                    // 学内アンケート
-	NTReport                          // レポート
-	NTCampusContact                   // 学内連絡
-	NTClassContact                    // 授業連絡
+	NTMiniTest      = NoticeType("小テスト")    // 小テスト
+	NTClassSurvey   = NoticeType("授業アンケート") // 授業アンケート
+	NTCampusSurvey  = NoticeType("学内アンケート") // 学内アンケート
+	NTReport        = NoticeType("レポート")    // レポート
+	NTCampusContact = NoticeType("学内連絡")    // 学内連絡
+	NTClassContact  = NoticeType("授業連絡")    // 授業連絡
 )
 
 func (nt NoticeType) String() string {
@@ -95,52 +79,35 @@ func (nt NoticeType) String() string {
 	}
 }
 
-func ToNoticetype(nt string) (NoticeType, error) {
+func ToNoticetype(nt string) NoticeType {
 	switch nt {
 	case "小テスト":
-		return NTMiniTest, nil
+		return NTMiniTest
 	case "授業アンケート":
-		return NTClassSurvey, nil
+		return NTClassSurvey
 	case "学内ｱﾝｹｰﾄ": // これ頭おかしいよ・・・
-		return NTCampusSurvey, nil
+		return NTCampusSurvey
 	case "レポート":
-		return NTReport, nil
+		return NTReport
 	case "学内連絡":
-		return NTCampusContact, nil
+		return NTCampusContact
 	case "授業連絡":
-		return NTClassContact, nil
-	default:
-		return 0, fmt.Errorf("%v is undefined", nt)
-	}
-}
-
-type SubNoticeType int
-
-const (
-	SNTRegist            SubNoticeType = iota // 登録
-	SNTTeacherContact                         // 教員連絡
-	SNTReminder                               // 催促
-	SNTComment                                // コメント
-	SNTChangeLectureRoom                      // 講義室変更
-	SNTNone                                   // なし
-)
-
-func (snt SubNoticeType) String() string {
-	switch snt {
-	case SNTRegist:
-		return "登録"
-	case SNTTeacherContact:
-		return "授業連絡"
-	case SNTReminder:
-		return "催促"
-	case SNTComment:
-		return "コメント"
-	case SNTChangeLectureRoom:
-		return "講義室変更"
+		return NTClassContact
 	default:
 		return ""
 	}
 }
+
+type SubNoticeType string
+
+const (
+	SNTRegist            = SubNoticeType("登録")    // 登録
+	SNTTeacherContact    = SubNoticeType("教員連絡")  // 教員連絡
+	SNTReminder          = SubNoticeType("催促")    // 催促
+	SNTComment           = SubNoticeType("コメント")  // コメント
+	SNTChangeLectureRoom = SubNoticeType("講義室変更") // 講義室変更
+	SNTNone                                       // なし
+)
 
 func ToSubNoticetype(snt string) SubNoticeType {
 	switch snt {

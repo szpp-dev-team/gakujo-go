@@ -16,11 +16,8 @@ func TaskRows(r io.Reader) ([]model.TaskRow, error) {
 	}
 	taskRows := make([]model.TaskRow, 0)
 	doc.Find("#tbl_submission > tbody > tr").EachWithBreak(func(i int, selection *goquery.Selection) bool {
-		taskType, inerr := model.ToTasktype(selection.Find("td.arart > span > span").Text())
-		if inerr != nil {
-			err = inerr
-			return false
-		}
+		var inerr error
+		taskType := model.ToTasktype(selection.Find("td.arart > span > span").Text())
 		deadlineText := selection.Find("td.daytime").Text()
 		var deadline time.Time
 		if deadlineText != "" {
@@ -49,11 +46,7 @@ func NoticeRows(r io.Reader) ([]model.NoticeRow, error) {
 	}
 	noticeRows := make([]model.NoticeRow, 0)
 	doc.Find("#tbl_news > tbody > tr").EachWithBreak(func(i int, selection *goquery.Selection) bool {
-		noticeType, inerr := model.ToNoticetype(selection.Find("td.arart > span > span > a").Text())
-		if inerr != nil {
-			err = inerr
-			return false
-		}
+		noticeType := model.ToNoticetype(selection.Find("td.arart > span > span > a").Text())
 		titleLine := selection.Find("td.title > a").Text()
 		snt, important, title, inerr := parseTitleLine(titleLine)
 		if inerr != nil {

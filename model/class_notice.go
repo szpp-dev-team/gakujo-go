@@ -41,12 +41,12 @@ type ClassNoticeDetail struct {
 	Index            int
 }
 
-type SemesterCode int
+type SemesterCode string
 
 const (
-	None        SemesterCode = iota
-	EarlyPeriod SemesterCode = iota
-	LaterPeriod
+	SemesterCodeNone = SemesterCode("")
+	EarlyPeriod      = SemesterCode("前期")
+	LaterPeriod      = SemesterCode("後期")
 )
 
 func ToSemesterCode(s string) SemesterCode {
@@ -56,28 +56,31 @@ func ToSemesterCode(s string) SemesterCode {
 	case "後期":
 		return LaterPeriod
 	default:
-		return None
+		return SemesterCodeNone
 	}
 }
 
-func (s *SemesterCode) String() string {
-	switch *s {
+func (sc SemesterCode) Int() int {
+	switch sc {
 	case EarlyPeriod:
-		return "前期"
+		return 1
 	case LaterPeriod:
-		return "後期"
+		return 2
+	case SemesterCodeNone:
+		return 0
 	default:
-		return ""
+		return 0
 	}
 }
 
-type SubSemesterCode int
+type SubSemesterCode string
 
 const (
-	EarlyEarlyPeriod SubSemesterCode = iota + 1
-	EarlyLaterPeriod
-	LaterEarlyPeriod
-	LaterLaterPeriod
+	None             = SubSemesterCode("")
+	EarlyEarlyPeriod = SubSemesterCode("前期前半")
+	EarlyLaterPeriod = SubSemesterCode("前期後半")
+	LaterEarlyPeriod = SubSemesterCode("後期前半")
+	LaterLaterPeriod = SubSemesterCode("後期後半")
 )
 
 func ToSubSemesterCode(s string) SubSemesterCode {
@@ -91,21 +94,6 @@ func ToSubSemesterCode(s string) SubSemesterCode {
 	case "後期後半":
 		return LaterLaterPeriod
 	default:
-		return 0
-	}
-}
-
-func (s *SubSemesterCode) String() string {
-	switch *s {
-	case EarlyEarlyPeriod:
-		return "前期前半"
-	case EarlyLaterPeriod:
-		return "前期後半"
-	case LaterEarlyPeriod:
-		return "後期前半"
-	case LaterLaterPeriod:
-		return "後期後半"
-	default:
 		return ""
 	}
 }
@@ -113,7 +101,8 @@ func (s *SubSemesterCode) String() string {
 type ContactKindCode int
 
 const (
-	Canceled ContactKindCode = iota + 1
+	ContactKindCodeNone ContactKindCode = iota
+	Canceled
 	Supplementary
 	Examination
 	LectureRoomChange
@@ -243,7 +232,7 @@ func (o ClassNoticeSearchOption) Formdata() *url.Values {
 	data := url.Values{}
 	data.Set("teacherCode", o.TeacherCode)
 	data.Set("schoolYear", strconv.Itoa(o.SchoolYear))
-	data.Set("semesterCode", zeroToNone(int(o.SemesterCode)))
+	data.Set("semesterCode", zeroToNone(o.SemesterCode.Int()))
 	data.Set("subjectDispCode", o.SubjectDispCode)
 	data.Set("searchKeyWord", o.SearchKeyWord)
 	data.Set("checkSearchKeywordTeacherUserName", on(o.CheckSearchKeywordTeacherUserName))

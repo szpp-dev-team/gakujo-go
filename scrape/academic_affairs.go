@@ -168,12 +168,7 @@ func scrapeSeisekiTrRow(s *goquery.Selection) (*model.SeisekiRow, error) {
 		case 2:
 			seisekiRow.SubjectDistinction = value
 		case 3:
-			st, inerr := model.ToSubjectType(value)
-			if inerr != nil {
-				err = inerr
-				return false
-			}
-			seisekiRow.SubjectType = st
+			seisekiRow.SubjectType = model.ToSubjectType(value)
 		case 4:
 			credit, inerr := strconv.Atoi(value)
 			if inerr != nil {
@@ -182,12 +177,7 @@ func scrapeSeisekiTrRow(s *goquery.Selection) (*model.SeisekiRow, error) {
 			}
 			seisekiRow.Credit = credit
 		case 5:
-			gt, inerr := model.ToGradeType(value)
-			if inerr != nil {
-				err = inerr
-				return false
-			}
-			seisekiRow.Grade = gt
+			seisekiRow.Grade = model.ToGradeType(value)
 		case 6:
 			score, inerr := strconv.ParseFloat(value, 64)
 			if inerr != nil {
@@ -237,11 +227,7 @@ func scrapeChusenRegistrationTrRow(s *goquery.Selection) (*model.ChusenRegistrat
 	chusenRegistrationRow.SubjectName = strings.TrimSpace(s.Find("td:nth-child(2) > font > a").Text())
 	chusenRegistrationRow.ClassName = strings.TrimSpace(s.Find("td:nth-child(3) > font").Text())
 	chusenRegistrationRow.SubjectDistinction = strings.TrimSpace(s.Find("td:nth-child(4) > font").Text())
-	st, err := model.ToSubjectType(strings.TrimSpace(s.Find("td:nth-child(5) > font").Text()))
-	if err != nil {
-		return nil, err
-	}
-	chusenRegistrationRow.SubjectType = st
+	chusenRegistrationRow.SubjectType = model.ToSubjectType(strings.TrimSpace(s.Find("td:nth-child(5) > font").Text()))
 	credit, err := strconv.Atoi(strings.TrimSpace(s.Find("td:nth-child(6) > font").Text()))
 	if err != nil {
 		return nil, err
