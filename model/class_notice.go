@@ -29,16 +29,16 @@ type CourseDate struct {
 }
 
 type ClassNoticeDetail struct {
-	ContactType      string          `json:"contactType"`             // 連絡種別
-	Title            string          `json:"title,omitempty"`         // タイトル
-	Description      string          `json:"description,omitempty"`   // 内容
-	File             []string        `json:"file,omitempty"`          // 添付ファイル
-	IsFilelinkPublic bool            `json:"is_filelink_public"`      // ファイルリンク公開フラグ
-	ReferenceURL     string          `json:"reference_url,omitempty"` // 参照URL
-	Importance       string          `json:"importance"`
-	ContactDate      time.Time       `json:"date,omitempty"` //連絡日時
+	ContactType      string          // 連絡種別
+	Title            string          // タイトル
+	Description      string          // 内容
+	File             []string        // 添付ファイル
+	IsFilelinkPublic bool            // ファイルリンク公開フラグ
+	ReferenceURL     string          // 参照URL
+	Importance       string          // 重要度
+	ContactDate      time.Time       //連絡日時
 	RequireResponse  RequireResponse // WEB返信要求
-	Index            int             `json:"index,omitempty"`
+	Index            int
 }
 
 type SemesterCode int
