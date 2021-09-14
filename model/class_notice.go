@@ -10,7 +10,7 @@ import (
 
 type ClassNoticeRow struct {
 	CourseName  string
-	CourseDates []CourseDate
+	CourseDate  CourseDate
 	TeacherName string
 	Title       string
 	ContactType string
@@ -22,8 +22,7 @@ type ClassNoticeRow struct {
 type CourseDate struct {
 	SemesterCode    SemesterCode
 	Weekday         time.Weekday
-	Jigen1          int
-	Jigen2          int
+	ComaCsv         string // 1・2コマの授業 = 1,2
 	SubSemesterCode SubSemesterCode
 	Other           string
 }

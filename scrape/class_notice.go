@@ -3,6 +3,7 @@ package scrape
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
@@ -42,7 +43,7 @@ func ClassNoticeRows(r io.Reader) ([]model.ClassNoticeRow, error) {
 			return false
 		}
 		classNoticeRow.CourseName = courseName
-		classNoticeRow.CourseDates = courseDate
+		classNoticeRow.CourseDate = courseDate
 		classNoticeRow.TeacherName = util.ReplaceAndTrim(s.Find("td:nth-child(3)").Text())
 		classNoticeRow.Title = util.ReplaceAndTrim(s.Find("td:nth-child(4) > a").Text())
 		classNoticeRow.ContactType = util.ReplaceAndTrim(s.Find("td:nth-child(5)").Text())
@@ -98,29 +99,32 @@ func ClassNoticeDetail(r io.Reader) (*model.ClassNoticeDetail, error) {
 	return &classNoticeDetail, nil
 }
 
-func parseCourseNameFormat(s string) (string, []model.CourseDate, error) {
+func parseCourseNameFormat(s string) (string, model.CourseDate, error) {
 	s = strings.TrimSpace(s)
 	elems := strings.Split(s, "\n")
 	if len(elems) != 2 {
-		return "", nil, fmt.Errorf("invalid course name format: ===%s===", s)
+		return "", model.CourseDate{}, fmt.Errorf("invalid course name format: ===%s===", s)
 	}
 	for i := range elems {
 		elems[i] = strings.TrimSpace(elems[i])
 	}
 
-	courseDates := []model.CourseDate{}
+	courseDate := model.CourseDate{}
+	comaList := []string{}
 	for _, plainCourseDate := range strings.Split(elems[1], ",") {
-		courseDate, err := parseCourseDateFormat(plainCourseDate)
+		innerCourseDate, coma, err := parseCourseDateFormat(plainCourseDate)
 		if err != nil {
-			return "", nil, err
+			return "", model.CourseDate{}, err
 		}
-		courseDates = append(courseDates, *courseDate)
+		comaList = append(comaList, strconv.Itoa(coma))
+		courseDate = *innerCourseDate
 	}
+	courseDate.ComaCsv = strings.Join(comaList, ",")
 
-	return elems[0], courseDates, nil
+	return elems[0], courseDate, nil
 }
 
-func parseCourseDateFormat(s string) (*model.CourseDate, error) {
+func parseCourseDateFormat(s string) (*model.CourseDate, int, error) {
 	var (
 		semester    string
 		weekday     rune
@@ -132,7 +136,7 @@ func parseCourseDateFormat(s string) (*model.CourseDate, error) {
 
 	elms := strings.Split(s, "/")
 	if len(elms) != 2 {
-		return nil, fmt.Errorf("invalid course date format: ===%s===", s)
+		return nil, 0, fmt.Errorf("invalid course date format: ===%s===", s)
 	}
 	fmt.Sscanf(elms[0], "%s", &semester)
 
@@ -140,16 +144,25 @@ func parseCourseDateFormat(s string) (*model.CourseDate, error) {
 	if _, err := fmt.Sscanf(elms[1], "%c%d・%d", &weekday, &jigen1, &jigen2); err != nil {
 		if _, err := fmt.Sscanf(elms[1], "%c%d・%d(%s)", &weekday, &jigen1, &jigen2, &subSemester); err != nil {
 			if _, err := fmt.Sscanf(elms[1], "%s", &other); err != nil {
-				return nil, fmt.Errorf("invalid course date format: ===%s===", s)
+				return nil, 0, fmt.Errorf("invalid course date format: ===%s===", s)
 			}
 		}
 	}
 	return &model.CourseDate{
 		SemesterCode:    model.ToSemesterCode(semester),
 		Weekday:         util.ToWeekday(weekday),
-		Jigen1:          jigen1,
-		Jigen2:          jigen2,
 		SubSemesterCode: model.ToSubSemesterCode(subSemester),
 		Other:           other,
-	}, nil
+	}, jigenToComa(jigen1, jigen2), nil
+}
+
+// x・y
+func jigenToComa(x, y int) int {
+	list := []int{1, 3, 5, 7, 9, 11}
+	for coma, i := range list {
+		if i == x && i+1 == y {
+			return coma + 1
+		}
+	}
+	return -1
 }
