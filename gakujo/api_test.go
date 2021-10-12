@@ -174,7 +174,11 @@ func TestPostRishuRegistration(t *testing.T) {
 }
 
 func TestReportRows(t *testing.T) {
-	reportRows, err := c.ReportRows()
+	option := model.ReportSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	reportRows, err := c.ReportRows(&option)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,14 +188,32 @@ func TestReportRows(t *testing.T) {
 }
 
 func TestReportDetail(t *testing.T) {
-	rows, err := c.ReportRows()
+	option := model.ReportSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.ReportRows(&option)
 	if err != nil {
 		t.Fatal(err)
 	}
-	option := rows[0].DetailOption()
-	reportDetail, err := c.ReportDetail(option)
+	detailOption := rows[0].DetailOption()
+	reportDetail, err := c.ReportDetail(detailOption)
 	if err != nil {
 		t.Fatal(err)
 	}
 	fmt.Println(reportDetail)
+}
+
+func TestMinitestRows(t *testing.T) {
+	option := model.MinitestSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.MinitestRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		fmt.Println(row)
+	}
 }
