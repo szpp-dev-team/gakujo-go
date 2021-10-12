@@ -17,7 +17,7 @@ func ClassNoticeRows(r io.Reader) ([]model.ClassNoticeRow, error) {
 			return time.Time{}, nil
 		}
 		text := util.ReplaceAndTrim(s)
-		t, err := time.Parse("2006/01/02 15:04", text)
+		t, err := util.Parse2400("2006/01/02 15:04", text)
 		if err != nil {
 			t, err := time.Parse("2006/01/02", text)
 			if err != nil {

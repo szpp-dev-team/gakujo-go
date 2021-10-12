@@ -66,11 +66,11 @@ func BasicTime(year, month, day int) time.Time {
 func ParsePeriod(periodText string) (time.Time, time.Time, error) {
 	var beginText1, beginText2, endText1, endText2 string
 	fmt.Sscanf(periodText, "%s %s ～ %s %s", &beginText1, &beginText2, &endText1, &endText2)
-	beginDate, err := time.Parse("2006/01/02 15:04", fmt.Sprintf("%s %s", beginText1, beginText2))
+	beginDate, err := Parse2400("2006/01/02 15:04", fmt.Sprintf("%s %s", beginText1, beginText2))
 	if err != nil {
 		return time.Time{}, time.Time{}, err
 	}
-	endDate, err := time.Parse("2006/01/02 15:04", fmt.Sprintf("%s %s", endText1, endText2))
+	endDate, err := Parse2400("2006/01/02 15:04", fmt.Sprintf("%s %s", endText1, endText2))
 	if err != nil {
 		return time.Time{}, time.Time{}, err
 	}

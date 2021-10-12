@@ -56,7 +56,7 @@ func ReportRows(r io.Reader) ([]model.ReportRow, error) {
 		if lastTimeText != "" {
 			var lastTimeText1, lastTimeText2 string
 			fmt.Sscanf(lastTimeText, "%s %s", &lastTimeText1, &lastTimeText2)
-			lastSubmitDate, inerr = time.Parse("2006/01/02 15:04", fmt.Sprintf("%s %s", lastTimeText1, lastTimeText2))
+			lastSubmitDate, inerr = util.Parse2400("2006/01/02 15:04", fmt.Sprintf("%s %s", lastTimeText1, lastTimeText2))
 			if inerr != nil {
 				err = inerr
 				return false
