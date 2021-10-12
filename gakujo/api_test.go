@@ -172,3 +172,26 @@ func TestPostRishuRegistration(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestReportRows(t *testing.T) {
+	reportRows, err := c.ReportRows()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range reportRows {
+		fmt.Println(row)
+	}
+}
+
+func TestReportDetail(t *testing.T) {
+	rows, err := c.ReportRows()
+	if err != nil {
+		t.Fatal(err)
+	}
+	option := rows[0].DetailOption()
+	reportDetail, err := c.ReportDetail(option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(reportDetail)
+}

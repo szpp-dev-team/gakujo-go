@@ -2,6 +2,7 @@ package util
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -59,4 +60,19 @@ func ToWeekday(s rune) time.Weekday {
 
 func BasicTime(year, month, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+}
+
+// return beginDate, endDate, error
+func ParsePeriod(periodText string) (time.Time, time.Time, error) {
+	var beginText1, beginText2, endText1, endText2 string
+	fmt.Sscanf(periodText, "%s %s ～ %s %s", &beginText1, &beginText2, &endText1, &endText2)
+	beginDate, err := time.Parse("2006/01/02 15:04", fmt.Sprintf("%s %s", beginText1, beginText2))
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	endDate, err := time.Parse("2006/01/02 15:04", fmt.Sprintf("%s %s", endText1, endText2))
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	return beginDate, endDate, nil
 }
