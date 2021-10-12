@@ -13,7 +13,7 @@ type ReportRow struct {
 	EndDate        time.Time
 	LastSubmitDate time.Time
 	Format         string
-	SubjectMetadata
+	ReportMetadata
 }
 
 func (rr *ReportRow) DetailOption() *ReportDetailOption {
@@ -27,7 +27,7 @@ func (rr *ReportRow) DetailOption() *ReportDetailOption {
 	}
 }
 
-type SubjectMetadata struct {
+type ReportMetadata struct {
 	ReportID         string
 	SubmitStatusCode string
 	SchoolYear       int

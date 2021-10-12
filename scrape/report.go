@@ -35,7 +35,7 @@ func ReportRows(r io.Reader) ([]model.ReportRow, error) {
 			err = errors.New("Attr \"onClick\" not found")
 			return false
 		}
-		subjectMetadata, inerr := parseJSargument(jsText)
+		reportMetadata, inerr := parseReportJSargument(jsText)
 		if inerr != nil {
 			err = inerr
 			return false
@@ -65,15 +65,15 @@ func ReportRows(r io.Reader) ([]model.ReportRow, error) {
 
 		format := util.ReplaceAndTrim(s.Find("td:nth-child(6)").Text())
 		rows = append(rows, model.ReportRow{
-			CourseName:      courseName,
-			CourseDates:     courseDates,
-			Title:           title,
-			Status:          status,
-			BeginDate:       beginDate,
-			EndDate:         endDate,
-			LastSubmitDate:  lastSubmitDate,
-			Format:          format,
-			SubjectMetadata: subjectMetadata,
+			CourseName:     courseName,
+			CourseDates:    courseDates,
+			Title:          title,
+			Status:         status,
+			BeginDate:      beginDate,
+			EndDate:        endDate,
+			LastSubmitDate: lastSubmitDate,
+			Format:         format,
+			ReportMetadata: reportMetadata,
 		})
 		return true
 	})
@@ -109,21 +109,21 @@ func ReportDetail(r io.Reader) (model.ReportDetail, error) {
 	}, nil
 }
 
-func parseJSargument(jsArgument string) (model.SubjectMetadata, error) {
+func parseReportJSargument(jsArgument string) (model.ReportMetadata, error) {
 	tokens := strings.Split(jsArgument[11:len(jsArgument)-2], ",")
 	for i, token := range tokens {
 		newToken := util.ReplaceAndTrim(token)
 		tokens[i] = newToken[1 : len(newToken)-1]
 	}
 	if len(tokens) != 6 {
-		return model.SubjectMetadata{}, errors.New("Too few tokens")
+		return model.ReportMetadata{}, errors.New("Too few tokens")
 	}
 
 	year, err := strconv.Atoi(tokens[3])
 	if err != nil {
-		return model.SubjectMetadata{}, err
+		return model.ReportMetadata{}, err
 	}
-	return model.SubjectMetadata{
+	return model.ReportMetadata{
 		ReportID:         tokens[1],
 		SubmitStatusCode: tokens[2],
 		SchoolYear:       year,

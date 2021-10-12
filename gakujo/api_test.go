@@ -217,3 +217,20 @@ func TestMinitestRows(t *testing.T) {
 		fmt.Println(row)
 	}
 }
+
+func TestMinitestDetail(t *testing.T) {
+	option := model.MinitestSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.MinitestRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	detailOption := rows[0].DetailOption()
+	reportDetail, err := c.MinitestDetail(detailOption)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(reportDetail)
+}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -33,7 +34,7 @@ func MinitestRows(r io.Reader) ([]model.MinitestRow, error) {
 			err = errors.New("Attr \"onClick\" not found")
 			return false
 		}
-		subjectMetadata, inerr := parseJSargument(jsText)
+		minitestMetadata, inerr := parseMinitestJSargument(jsText)
 		if inerr != nil {
 			err = inerr
 			return false
@@ -54,15 +55,15 @@ func MinitestRows(r io.Reader) ([]model.MinitestRow, error) {
 
 		format := util.ReplaceAndTrim(s.Find("td:nth-child(6)").Text())
 		rows = append(rows, model.MinitestRow{
-			CourseName:      courseName,
-			CourseDates:     courseDates,
-			Title:           title,
-			Status:          status,
-			BeginDate:       beginDate,
-			EndDate:         endDate,
-			SubmitStatus:    submitStatus,
-			Format:          format,
-			SubjectMetadata: subjectMetadata,
+			CourseName:       courseName,
+			CourseDates:      courseDates,
+			Title:            title,
+			Status:           status,
+			BeginDate:        beginDate,
+			EndDate:          endDate,
+			SubmitStatus:     submitStatus,
+			Format:           format,
+			MinitestMetadata: minitestMetadata,
 		})
 		return true
 	})
@@ -75,20 +76,21 @@ func MinitestDetail(r io.Reader) (model.MinitestDetail, error) {
 		return model.MinitestDetail{}, err
 	}
 	selection := doc.Find("#area > table > tbody")
-	title := util.ReplaceAndTrim(selection.Find("tr:nth-child(1)").Text())
-	periodText := util.ReplaceAndTrim(selection.Find("tr:nth-child(2)").Text())
+	title := util.ReplaceAndTrim(selection.Find("tr:nth-child(1) > td").Text())
+	periodText := util.ReplaceAndTrim(selection.Find("tr:nth-child(2) > td").Text())
 	beginDate, endDate, err := util.ParsePeriod(periodText)
 	if err != nil {
 		return model.MinitestDetail{}, err
 	}
-	numText := util.ReplaceAndTrim(selection.Find("tr:nth-child(3)").Text())
+	numText := util.ReplaceAndTrim(selection.Find("tr:nth-child(3) > td").Text())
 	var num int
 	fmt.Sscanf(numText, "%d 問", &num)
-	evaluationMethod := util.ReplaceAndTrim(selection.Find("tr:nth-child(4)").Text())
-	description := util.ReplaceAndTrim(selection.Find("tr:nth-child(5)").Text())
+	evaluationMethod := util.ReplaceAndTrim(selection.Find("tr:nth-child(4) > td").Text())
+	description := util.ReplaceAndTrim(selection.Find("tr:nth-child(5) > td").Text())
 	description = strings.Join(strings.Split(description, "<br/>"), "\n")
-	transMatter := util.ReplaceAndTrim(selection.Find("tr:nth-child(7)").Text())
-	minitestHtml, err := selection.Find("#area > div:nth-child(4)").Html()
+	transMatter := util.ReplaceAndTrim(selection.Find("tr:nth-child(7) > td").Text())
+	minitestHtml, err := doc.Find("#area > div:nth-child(4)").Html() // not working
+	fmt.Println(minitestHtml)
 	if err != nil {
 		return model.MinitestDetail{}, err
 	}
@@ -101,5 +103,28 @@ func MinitestDetail(r io.Reader) (model.MinitestDetail, error) {
 		Description:      description,
 		TransMatter:      transMatter,
 		MinitestHtml:     minitestHtml,
+	}, nil
+}
+
+func parseMinitestJSargument(jsArgument string) (model.MinitestMetadata, error) {
+	tokens := strings.Split(jsArgument[11:len(jsArgument)-2], ",")
+	for i, token := range tokens {
+		newToken := util.ReplaceAndTrim(token)
+		tokens[i] = newToken[1 : len(newToken)-1]
+	}
+	if len(tokens) != 6 {
+		return model.MinitestMetadata{}, errors.New("Too few tokens")
+	}
+
+	year, err := strconv.Atoi(tokens[3])
+	if err != nil {
+		return model.MinitestMetadata{}, err
+	}
+	return model.MinitestMetadata{
+		TestID:           tokens[1],
+		SubmitStatusCode: tokens[2],
+		SchoolYear:       year,
+		SubjectCode:      tokens[4],
+		ClassCode:        tokens[5],
 	}, nil
 }

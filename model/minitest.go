@@ -11,7 +11,18 @@ type MinitestRow struct {
 	EndDate      time.Time
 	SubmitStatus SubmitStatus
 	Format       string
-	SubjectMetadata
+	MinitestMetadata
+}
+
+func (mr *MinitestRow) DetailOption() *MinitestDetailOption {
+	return &MinitestDetailOption{
+		TestID:          mr.TestID,
+		ListSchoolYear:  mr.SchoolYear,
+		ListSubjectCode: mr.SubjectCode,
+		ListClassCode:   mr.ClassCode,
+		SchoolYear:      mr.SchoolYear,
+		SemesterCode:    mr.CourseDates[0].SemesterCode,
+	}
 }
 
 type MinitestDetail struct {
@@ -54,4 +65,12 @@ func ToSubmitStatus(s string) SubmitStatus {
 		return UnSubmited
 	}
 	return Submited // 適当
+}
+
+type MinitestMetadata struct {
+	TestID           string
+	SubmitStatusCode string
+	SchoolYear       int
+	SubjectCode      string
+	ClassCode        string
 }
