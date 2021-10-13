@@ -234,3 +234,34 @@ func TestMinitestDetail(t *testing.T) {
 	}
 	fmt.Println(reportDetail)
 }
+
+func TestClassEnqRows(t *testing.T) {
+	option := model.ClassEnqSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.ClassEnqRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestClassEnqDetail(t *testing.T) {
+	option := model.ClassEnqSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.ClassEnqRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	detailOption := rows[0].DetailOption()
+	reportDetail, err := c.ClassEnqDetail(detailOption)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(reportDetail)
+}
