@@ -86,7 +86,20 @@ func ClassEnqDetail(r io.Reader) (model.ClassEnqDetail, error) {
 	description := util.ReplaceAndTrim(selection.Find("tr:nth-child(5) > td").Text())
 	description = strings.Join(strings.Split(description, "<br/>"), "\n")
 	transMatter := util.ReplaceAndTrim(selection.Find("tr:nth-child(7) > td").Text())
-	ClassEnqHtml, err := doc.Find("#area > div:nth-child(4)").Html() // not working
+	ClassEnqHtml, err := doc.Find("#right-box > form:nth-child(4) > div.right-module-bold.mt15 > div > div > table:nth-child(10)").Html() // not working
+	var classEnqHtml string
+	doc.Find("#area > div:nth-child(4) > table").EachWithBreak(func(i int, s *goquery.Selection) bool {
+		if i < 1 {
+			return true
+		}
+		html, inerr := s.Html()
+		if err != nil {
+			err = inerr
+			return false
+		}
+		classEnqHtml += html
+		return true
+	})
 	if err != nil {
 		return model.ClassEnqDetail{}, err
 	}

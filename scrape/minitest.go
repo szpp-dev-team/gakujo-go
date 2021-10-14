@@ -89,8 +89,19 @@ func MinitestDetail(r io.Reader) (model.MinitestDetail, error) {
 	description := util.ReplaceAndTrim(selection.Find("tr:nth-child(5) > td").Text())
 	description = strings.Join(strings.Split(description, "<br/>"), "\n")
 	transMatter := util.ReplaceAndTrim(selection.Find("tr:nth-child(7) > td").Text())
-	minitestHtml, err := doc.Find("#area > div:nth-child(4)").Html() // not working
-	fmt.Println(minitestHtml)
+	var minitestHtml string
+	doc.Find("#area > div:nth-child(4) > table").EachWithBreak(func(i int, s *goquery.Selection) bool {
+		if i < 2 {
+			return true
+		}
+		html, inerr := s.Html()
+		if err != nil {
+			err = inerr
+			return false
+		}
+		minitestHtml += html
+		return true
+	})
 	if err != nil {
 		return model.MinitestDetail{}, err
 	}
