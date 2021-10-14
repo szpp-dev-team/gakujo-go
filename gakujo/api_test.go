@@ -172,3 +172,96 @@ func TestPostRishuRegistration(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestReportRows(t *testing.T) {
+	option := model.ReportSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	reportRows, err := c.ReportRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range reportRows {
+		fmt.Println(row)
+	}
+}
+
+func TestReportDetail(t *testing.T) {
+	option := model.ReportSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.ReportRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	detailOption := rows[0].DetailOption()
+	reportDetail, err := c.ReportDetail(detailOption)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(reportDetail)
+}
+
+func TestMinitestRows(t *testing.T) {
+	option := model.MinitestSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.MinitestRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestMinitestDetail(t *testing.T) {
+	option := model.MinitestSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.MinitestRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	detailOption := rows[0].DetailOption()
+	reportDetail, err := c.MinitestDetail(detailOption)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(reportDetail)
+}
+
+func TestClassEnqRows(t *testing.T) {
+	option := model.ClassEnqSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.ClassEnqRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestClassEnqDetail(t *testing.T) {
+	option := model.ClassEnqSearchOption{
+		SchoolYear:   2020,
+		SemesterCode: model.EarlyPeriod,
+	}
+	rows, err := c.ClassEnqRows(&option)
+	if err != nil {
+		t.Fatal(err)
+	}
+	detailOption := rows[0].DetailOption()
+	reportDetail, err := c.ClassEnqDetail(detailOption)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(reportDetail)
+}

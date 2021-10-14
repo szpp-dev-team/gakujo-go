@@ -16,6 +16,7 @@ func TestParse2400(t *testing.T) {
 		{"", ""},
 		{"1", "2"},
 		{"2006/01/02 15:04:05", "2021/07/31 24:00:00"},
+		{"2006/01/02 15:04", "2020/06/05 24:00"},
 	}
 	for _, testcase := range testcases {
 		parsedTime, err := Parse2400(testcase.layout, testcase.value)

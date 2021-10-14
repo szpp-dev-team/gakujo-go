@@ -7,6 +7,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/szpp-dev-team/gakujo-api/model"
+	"github.com/szpp-dev-team/gakujo-api/util"
 )
 
 func TaskRows(r io.Reader) ([]model.TaskRow, error) {
@@ -21,7 +22,7 @@ func TaskRows(r io.Reader) ([]model.TaskRow, error) {
 		deadlineText := selection.Find("td.daytime").Text()
 		var deadline time.Time
 		if deadlineText != "" {
-			deadline, inerr = time.Parse("2006/01/02 15:04", deadlineText)
+			deadline, inerr = util.Parse2400("2006/01/02 15:04", deadlineText)
 			if inerr != nil {
 				err = inerr
 				return false
@@ -101,7 +102,7 @@ func NoticeDetail(r io.Reader) (*model.NoticeDetail, error) {
 		case i == 7:
 			rawText := strings.Replace(selection.Find("td").Text(), "即時通知", "", -1)
 			rawText = strings.TrimSpace(rawText)
-			date, inerr := time.Parse("2006/01/02 15:04", rawText)
+			date, inerr := util.Parse2400("2006/01/02 15:04", rawText)
 			if inerr != nil {
 				err = inerr
 				return
