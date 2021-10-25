@@ -10,12 +10,12 @@ type ClassEnqRow struct {
 	BeginDate    time.Time
 	EndDate      time.Time
 	SubmitStatus SubmitStatus
-	ClassEnqMetadata
+	TaskMetadata
 }
 
 func (cr *ClassEnqRow) DetailOption() *ClassEnqDetailOption {
 	return &ClassEnqDetailOption{
-		ClassEnqID:      cr.ClassEnqID,
+		ClassEnqID:      cr.ID,
 		ListSchoolYear:  cr.SchoolYear,
 		ListSubjectCode: cr.SubjectCode,
 		ListClassCode:   cr.ClassCode,
@@ -47,12 +47,4 @@ type ClassEnqDetailOption struct {
 	ListClassCode   string
 	SchoolYear      int
 	SemesterCode    SemesterCode
-}
-
-type ClassEnqMetadata struct {
-	ClassEnqID       string
-	SubmitStatusCode string
-	SchoolYear       int
-	SubjectCode      string
-	ClassCode        string
 }

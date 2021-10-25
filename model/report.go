@@ -13,12 +13,12 @@ type ReportRow struct {
 	EndDate        time.Time
 	LastSubmitDate time.Time
 	Format         string
-	ReportMetadata
+	TaskMetadata
 }
 
 func (rr *ReportRow) DetailOption() *ReportDetailOption {
 	return &ReportDetailOption{
-		ReportID:        rr.ReportID,
+		ReportID:        rr.ID,
 		ListSchoolYear:  rr.SchoolYear,
 		ListSubjectCode: rr.SubjectCode,
 		ListClassCode:   rr.ClassCode,
@@ -27,8 +27,8 @@ func (rr *ReportRow) DetailOption() *ReportDetailOption {
 	}
 }
 
-type ReportMetadata struct {
-	ReportID         string
+type TaskMetadata struct {
+	ID               string
 	SubmitStatusCode string
 	SchoolYear       int
 	SubjectCode      string

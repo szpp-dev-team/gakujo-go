@@ -54,14 +54,14 @@ func ClassEnqRows(r io.Reader) ([]model.ClassEnqRow, error) {
 		submitStatus := model.ToSubmitStatus(submitStatusText)
 
 		rows = append(rows, model.ClassEnqRow{
-			CourseName:       courseName,
-			CourseDates:      courseDates,
-			Title:            title,
-			Status:           status,
-			BeginDate:        beginDate,
-			EndDate:          endDate,
-			SubmitStatus:     submitStatus,
-			ClassEnqMetadata: ClassEnqMetadata,
+			CourseName:   courseName,
+			CourseDates:  courseDates,
+			Title:        title,
+			Status:       status,
+			BeginDate:    beginDate,
+			EndDate:      endDate,
+			SubmitStatus: submitStatus,
+			TaskMetadata: ClassEnqMetadata,
 		})
 		return true
 	})
@@ -114,22 +114,22 @@ func ClassEnqDetail(r io.Reader) (model.ClassEnqDetail, error) {
 	}, nil
 }
 
-func parseClassEnqJSargument(jsArgument string) (model.ClassEnqMetadata, error) {
+func parseClassEnqJSargument(jsArgument string) (model.TaskMetadata, error) {
 	tokens := strings.Split(jsArgument[11:len(jsArgument)-2], ",")
 	for i, token := range tokens {
 		newToken := util.ReplaceAndTrim(token)
 		tokens[i] = newToken[1 : len(newToken)-1]
 	}
 	if len(tokens) != 6 {
-		return model.ClassEnqMetadata{}, errors.New("Too few tokens")
+		return model.TaskMetadata{}, errors.New("Too few tokens")
 	}
 
 	year, err := strconv.Atoi(tokens[3])
 	if err != nil {
-		return model.ClassEnqMetadata{}, err
+		return model.TaskMetadata{}, err
 	}
-	return model.ClassEnqMetadata{
-		ClassEnqID:       tokens[1],
+	return model.TaskMetadata{
+		ID:               tokens[1],
 		SubmitStatusCode: tokens[2],
 		SchoolYear:       year,
 		SubjectCode:      tokens[4],
