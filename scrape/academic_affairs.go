@@ -74,7 +74,6 @@ func DepartmentGpa(r io.Reader) (*model.DepartmentGpa, error) {
 func scrapeGpaTrRow(s *goquery.Selection) (*model.DepartmentGpa, error) {
 	var (
 		departmentGpa model.DepartmentGpa
-		termGPA       model.TermGpa = model.TermGpa{}
 		err           error
 	)
 	replacer := strings.NewReplacer("\n", "", "\t", "", " ", "")
@@ -93,23 +92,8 @@ func scrapeGpaTrRow(s *goquery.Selection) (*model.DepartmentGpa, error) {
 			gpa, _ := strconv.ParseFloat(text, 64)
 			if _, err := fmt.Sscanf(item, "%d年度　%s　GPA値", &year, &term); err != nil {
 				departmentGpa.Gpa = gpa
-			} else {
-				termGPA.Year = year
-				if term == "前期" {
-					termGPA.FirstGPA = gpa
-				} else if term == "後期" {
-					termGPA.SecondGPA = gpa
-
-					departmentGpa.TermGpas = append(departmentGpa.TermGpas, termGPA)
-					termGPA = model.TermGpa{}
-				}
 			}
 		} else {
-			if termGPA.FirstGPA != 0 {
-				departmentGpa.TermGpas = append(departmentGpa.TermGpas, termGPA)
-				termGPA = model.TermGpa{}
-			}
-
 			switch item {
 			case "最終GPA算出日":
 				t, inerr := time.Parse("2006年01月02日", text)

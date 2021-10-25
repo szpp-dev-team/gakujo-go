@@ -20,15 +20,8 @@ type SeisekiRow struct {
 	//TestType           string      // 試験種別 よくわからないので保留
 }
 
-type TermGpa struct {
-	Year      int
-	FirstGPA  float64 // 前期 gpa
-	SecondGPA float64 // 後期 gpa
-}
-
 type DepartmentGpa struct {
 	Gpa            float64
-	TermGpas       []TermGpa
 	CalcDate       time.Time // 最終 gpa 算出日
 	DepartmentRank int       // 学科内順位
 	DepartmentNum  int       // 学科内人数
