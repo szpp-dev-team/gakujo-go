@@ -29,7 +29,7 @@ func init() {
 	begin = time.Now()
 	c = NewClient()
 	if err := c.Login(username, password); err != nil {
-		log.Fatal("failed to login")
+		log.Fatal("failed to login", err)
 	}
 	log.Println("[Info]Login succeeded(took:", time.Since(begin), "ms)")
 }

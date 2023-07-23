@@ -21,7 +21,6 @@ const (
 
 type Client struct {
 	client *http.Client
-	jar    *cookiejar.Jar
 	token  string // org.apache.struts.taglib.html.TOKEN
 }
 
@@ -36,7 +35,6 @@ func NewClient() *Client {
 	}
 	return &Client{
 		client: &httpClient,
-		jar:    jar,
 	}
 }
 
@@ -44,7 +42,7 @@ func NewClient() *Client {
 // if not found, return ""
 func (c *Client) SessionID() string {
 	u, _ := url.Parse(HostName)
-	for _, cookie := range c.jar.Cookies(u) {
+	for _, cookie := range c.client.Jar.Cookies(u) {
 		if cookie.Name == "JSESSIONID" {
 			return cookie.Value
 		}
@@ -75,10 +73,10 @@ func (c *Client) GetPage(url string, data url.Values) ([]byte, error) {
 }
 
 // http.Get wrapper
-func (c *Client) get(url string, param ...url.Values) (*http.Response, error) {
+func (c *Client) get(url string, header ...http.Header) (*http.Response, error) {
 	req, _ := http.NewRequest(http.MethodGet, url, nil)
-	if len(param) > 0 {
-		req.URL.RawQuery = param[0].Encode()
+	if len(header) > 0 {
+		req.Header = header[0]
 	}
 	return c.client.Do(req)
 }

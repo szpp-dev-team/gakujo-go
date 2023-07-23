@@ -1,13 +1,13 @@
 package gakujo
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/szpp-dev-team/gakujo-go/scrape"
 )
 
@@ -113,19 +113,16 @@ func (c *Client) login(reqUrl, username, password string) error {
 		_, _ = io.Copy(io.Discard, rc)
 		rc.Close()
 	}()
+
 	relayState, samlResponse, err := scrape.RelayStateAndSAMLResponse(rc)
 	if err != nil {
 		return err
 	}
-
-	location, err := c.fetchSSOinitLoginLocation(relayState, samlResponse)
+	location, err := c.postShibbolethSAML2POST(relayState, samlResponse)
 	if err != nil {
 		return err
 	}
-
-	params := url.Values{}
-	params.Set("Referer", "https://idp.shizuoka.ac.jp/")
-	resp, err := c.get(location, params)
+	resp, err := c.get(location, http.Header{"Referer": {"https://idp.shizuoka.ac.jp/"}})
 	if err != nil {
 		return err
 	}
@@ -136,6 +133,12 @@ func (c *Client) login(reqUrl, username, password string) error {
 	if resp.StatusCode != http.StatusOK {
 		return unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
+
+	if err := c.postAccessEnvironmentRegist(); err != nil {
+		return err
+	}
+
+	c.initialize()
 
 	return nil
 }
@@ -171,7 +174,7 @@ func (c *Client) shibbolethlogin() (string, error) {
 	return resp.Header.Get("Location"), nil
 }
 
-func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (string, error) {
+func (c *Client) postShibbolethSAML2POST(relayState, samlResponse string) (string, error) {
 	data := make(url.Values)
 	data.Set("RelayState", relayState)
 	data.Set("SAMLResponse", samlResponse)
@@ -184,9 +187,29 @@ func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (str
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 	if resp.StatusCode != http.StatusFound {
-		return "", fmt.Errorf("response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+		return "", unexpectedStatusCodeError(http.StatusFound, resp.StatusCode)
 	}
 	return resp.Header.Get("Location"), nil
+}
+
+// アクセス環境登録
+func (c *Client) postAccessEnvironmentRegist() error {
+	data := make(url.Values)
+	data.Set("accessEnvName", uuid.NewString())
+	data.Set("checkBox", "on")
+	data.Set("newAccessKey", "")
+	resp, err := c.postForm("https://gakujo.shizuoka.ac.jp/portal/common/accessEnvironmentRegist/goHome/", data)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+	}()
+	if resp.StatusCode != http.StatusOK {
+		return unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
+	}
+	return nil
 }
 
 func (c *Client) initialize() error {

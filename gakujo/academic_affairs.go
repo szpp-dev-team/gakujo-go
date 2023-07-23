@@ -185,7 +185,7 @@ func (c *Client) fetchSeisekiHtml() ([]byte, error) {
 	q.Set("jsessionid", c.SessionID())
 	q.Set("mainMenuCode", "008")
 	q.Set("parentMenuCode", "007")
-	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/seisekiSearchStudentInit.do;", q)
+	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/seisekiSearchStudentInit.do;?" + q.Encode())
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func (c *Client) fetchRishuInitHtml() ([]byte, error) {
 	q.Set("jsessionid", c.SessionID())
 	q.Set("mainMenuCode", "002")
 	q.Set("parentMenuCode", "001")
-	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/rishuuInit.do", q)
+	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/rishuuInit.do?" + q.Encode())
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func (c *Client) fetchSearchKamokuInitHtml(youbi, jigen int) ([]byte, error) {
 	q.Set("jsessionid", c.SessionID())
 	q.Set("youbi", strconv.Itoa(youbi))
 	q.Set("jigen", strconv.Itoa(jigen))
-	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/searchKamokuInit.do", q)
+	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/searchKamokuInit.do?" + q.Encode())
 	if err != nil {
 		return nil, err
 	}
