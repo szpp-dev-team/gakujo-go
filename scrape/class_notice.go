@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/szpp-dev-team/gakujo-api/model"
-	"github.com/szpp-dev-team/gakujo-api/util"
+	"github.com/szpp-dev-team/gakujo-go/model"
+	"github.com/szpp-dev-team/gakujo-go/util"
 )
 
 func ClassNoticeRows(r io.Reader) ([]model.ClassNoticeRow, error) {

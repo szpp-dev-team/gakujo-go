@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/szpp-dev-team/gakujo-api/model"
+	"github.com/szpp-dev-team/gakujo-go/model"
 )
 
 func SeisekiRows(r io.Reader) ([]*model.SeisekiRow, error) {

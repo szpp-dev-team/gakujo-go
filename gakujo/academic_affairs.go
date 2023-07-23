@@ -12,9 +12,9 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
 
-	"github.com/szpp-dev-team/gakujo-api/model"
-	"github.com/szpp-dev-team/gakujo-api/scrape"
-	"github.com/szpp-dev-team/gakujo-api/util"
+	"github.com/szpp-dev-team/gakujo-go/model"
+	"github.com/szpp-dev-team/gakujo-go/scrape"
+	"github.com/szpp-dev-team/gakujo-go/util"
 )
 
 type KyoumuClient struct {

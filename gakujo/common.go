@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/szpp-dev-team/gakujo-api/scrape"
+	"github.com/szpp-dev-team/gakujo-go/scrape"
 )
 
 const (

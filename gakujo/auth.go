@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/szpp-dev-team/gakujo-api/scrape"
+	"github.com/szpp-dev-team/gakujo-go/scrape"
 )
 
 func (c *Client) Login(username, password string) error {

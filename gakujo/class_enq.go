@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/szpp-dev-team/gakujo-api/model"
-	"github.com/szpp-dev-team/gakujo-api/scrape"
+	"github.com/szpp-dev-team/gakujo-go/model"
+	"github.com/szpp-dev-team/gakujo-go/scrape"
 )
 
 func (c *Client) ClassEnqRows(option *model.ClassEnqSearchOption) ([]model.ClassEnqRow, error) {

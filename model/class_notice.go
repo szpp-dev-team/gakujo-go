@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/szpp-dev-team/gakujo-api/util"
+	"github.com/szpp-dev-team/gakujo-go/util"
 )
 
 type ClassNoticeRow struct {

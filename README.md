@@ -8,7 +8,7 @@
 ## Installation
 
 ```console
-$ go get -u github.com/szpp-dev-team/gakujo-api
+$ go get -u github.com/szpp-dev-team/gakujo-go
 ```
 
 ## Documentation
@@ -18,7 +18,7 @@ $ go get -u github.com/szpp-dev-team/gakujo-api
 以下のようにインポートしてください。
 
 ```go
-import "github.com/szpp-dev-team/gakujo-api/gakujo"
+import "github.com/szpp-dev-team/gakujo-go/gakujo"
 ```
 
 ### Declartion & Login
@@ -80,10 +80,10 @@ type NoticeRow struct {
 
 ```console
 $ echo -e 'J_USERNAME=学情のID\nJ_PASSWORD=学情のPSWD' > ./.env
-$ go test -timeout 30s -run ^TestLogin$ github.com/szpp-dev-team/gakujo-api/gakujo -v
+$ go test -timeout 30s -run ^TestLogin$ github.com/szpp-dev-team/gakujo-go/gakujo -v
 .
 .
 --- PASS: TestLogin (8.25s)
 PASS
-ok      github.com/szpp-dev-team/gakujo-api/gakujo 8.731s
+ok      github.com/szpp-dev-team/gakujo-go/gakujo 8.731s
 ```

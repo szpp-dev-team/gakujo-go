@@ -5,8 +5,8 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/szpp-dev-team/gakujo-api/model"
-	"github.com/szpp-dev-team/gakujo-api/scrape"
+	"github.com/szpp-dev-team/gakujo-go/model"
+	"github.com/szpp-dev-team/gakujo-go/scrape"
 )
 
 func (c *Client) ClassNoticeRows(opt *model.ClassNoticeSearchOption) ([]model.ClassNoticeRow, error) {
