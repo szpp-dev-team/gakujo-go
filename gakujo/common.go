@@ -26,9 +26,7 @@ type Client struct {
 }
 
 func NewClient() *Client {
-	jar, _ := cookiejar.New(
-		nil,
-	)
+	jar, _ := cookiejar.New(nil)
 	httpClient := http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -55,71 +53,55 @@ func (c *Client) SessionID() string {
 	return ""
 }
 
-// save cookie "Set-Cookies" into client.cookie
-func (c *Client) request(req *http.Request) (*http.Response, error) {
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-// get page which needs org.apache.struts.taglib.html.TOKEN and save its token
-func (c *Client) getPage(url string, datas url.Values) (io.ReadCloser, error) {
-	datas.Set("org.apache.struts.taglib.html.TOKEN", c.token)
-
-	resp, err := c.postForm(url, datas)
+// 任意のページを取得し、apache Token を取得する
+func (c *Client) GetPage(url string, data url.Values) ([]byte, error) {
+	data.Set("org.apache.struts.taglib.html.TOKEN", c.token)
+	resp, err := c.postForm(url, data)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expext %d)", resp.StatusCode, http.StatusOK)
+		return nil, fmt.Errorf("response status was %d(expext %d)", resp.StatusCode, http.StatusOK)
 	}
-	b, err := io.ReadAll(resp.Body)
+	page := &bytes.Buffer{}
+	r := io.TeeReader(resp.Body, page)
+	token, err := scrape.ApacheToken(r)
 	if err != nil {
-		return nil, err
+		return nil, err // getPage では必ず apache Token が含まれるページを取得するはず
 	}
-
-	token, err := scrape.ApacheToken(io.NopCloser(bytes.NewReader(b)))
-	if err != nil {
-		// getPage では必ず apache Token が含まれるページを取得するはず
-		return nil, err
-	}
-	c.token = token
-
-	return io.NopCloser(bytes.NewReader(b)), nil
+	c.token = token // トークンを更新
+	return page.Bytes(), nil
 }
 
 // http.Get wrapper
-func (c *Client) get(url string) (*http.Response, error) {
+func (c *Client) get(url string, param ...url.Values) (*http.Response, error) {
 	req, _ := http.NewRequest(http.MethodGet, url, nil)
-	return c.request(req)
-}
-
-// http.Get wrapper
-func (c *Client) getWithReferer(url, referer string) (*http.Response, error) {
-	req, _ := http.NewRequest(http.MethodGet, url, nil)
-	req.Header.Set("Referer", referer)
-	return c.request(req)
+	if len(param) > 0 {
+		req.URL.RawQuery = param[0].Encode()
+	}
+	return c.client.Do(req)
 }
 
 // http.PostForm wrapper
-func (c *Client) postForm(url string, datas url.Values) (*http.Response, error) {
-	req, err := http.NewRequest(
-		http.MethodPost,
-		url,
-		strings.NewReader(datas.Encode()),
-	)
+func (c *Client) postForm(url string, data url.Values) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := c.request(req)
-	if err != nil {
-		return nil, err
-	}
+	return c.client.Do(req)
+}
 
-	return resp, nil
+type UnexpectedStatusCodeError struct {
+	expected int
+	actual   int
+}
+
+func (e *UnexpectedStatusCodeError) Error() string {
+	return fmt.Sprintf("unexpected status code: expected %d, actual %d", e.expected, e.actual)
+}
+
+func unexpectedStatusCodeError(expected, actual int) error {
+	return &UnexpectedStatusCodeError{expected, actual}
 }

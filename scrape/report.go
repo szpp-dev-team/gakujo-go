@@ -32,7 +32,7 @@ func ReportRows(r io.Reader) ([]model.ReportRow, error) {
 
 		jsText, exists := s.Find("td:nth-child(2) > a").Attr("onclick")
 		if !exists {
-			err = errors.New("Attr \"onClick\" not found")
+			err = errors.New("attr \"onClick\" not found")
 			return false
 		}
 		reportMetadata, inerr := parseReportJSargument(jsText)
@@ -80,26 +80,26 @@ func ReportRows(r io.Reader) ([]model.ReportRow, error) {
 	return rows, err
 }
 
-func ReportDetail(r io.Reader) (model.ReportDetail, error) {
+func ReportDetail(r io.Reader) (*model.ReportDetail, error) {
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
-		return model.ReportDetail{}, err
+		return nil, err
 	}
 	selection := doc.Find("#area > table > tbody")
 	title := util.ReplaceAndTrim(selection.Find("tr:nth-child(1) > td").Text())
 	periodText := util.ReplaceAndTrim(selection.Find("tr:nth-child(2) > td").Text())
 	beginDate, endDate, err := util.ParsePeriod(periodText)
 	if err != nil {
-		return model.ReportDetail{}, err
+		return nil, err
 	}
 	evaluationMethod := util.ReplaceAndTrim(selection.Find("tr:nth-child(3) > td").Text())
 	description, err := selection.Find("tr:nth-child(4) > td").Html()
 	if err != nil {
-		return model.ReportDetail{}, err
+		return nil, err
 	}
 	description = strings.Join(strings.Split(description, "<br/>"), "\n")
 	transMatter := util.ReplaceAndTrim(selection.Find("tr:nth-child(6) > td").Text())
-	return model.ReportDetail{
+	return &model.ReportDetail{
 		Title:            title,
 		BeginDate:        beginDate,
 		EndDate:          endDate,
@@ -109,21 +109,21 @@ func ReportDetail(r io.Reader) (model.ReportDetail, error) {
 	}, nil
 }
 
-func parseReportJSargument(jsArgument string) (model.TaskMetadata, error) {
+func parseReportJSargument(jsArgument string) (*model.TaskMetadata, error) {
 	tokens := strings.Split(jsArgument[11:len(jsArgument)-2], ",")
 	for i, token := range tokens {
 		newToken := util.ReplaceAndTrim(token)
 		tokens[i] = newToken[1 : len(newToken)-1]
 	}
 	if len(tokens) != 6 {
-		return model.TaskMetadata{}, errors.New("Too few tokens")
+		return nil, errors.New("too few tokens")
 	}
 
 	year, err := strconv.Atoi(tokens[3])
 	if err != nil {
-		return model.TaskMetadata{}, err
+		return nil, err
 	}
-	return model.TaskMetadata{
+	return &model.TaskMetadata{
 		ID:               tokens[1],
 		SubmitStatusCode: tokens[2],
 		SchoolYear:       year,

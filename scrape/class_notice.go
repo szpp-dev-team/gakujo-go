@@ -98,7 +98,7 @@ func ClassNoticeDetail(r io.Reader) (*model.ClassNoticeDetail, error) {
 	return &classNoticeDetail, nil
 }
 
-func parseCourseNameFormat(s string) (string, []model.CourseDate, error) {
+func parseCourseNameFormat(s string) (string, []*model.CourseDate, error) {
 	s = strings.TrimSpace(s)
 	elems := strings.Split(s, "\n")
 	if len(elems) != 2 {
@@ -108,13 +108,13 @@ func parseCourseNameFormat(s string) (string, []model.CourseDate, error) {
 		elems[i] = strings.TrimSpace(elems[i])
 	}
 
-	courseDates := []model.CourseDate{}
+	courseDates := []*model.CourseDate{}
 	for _, plainCourseDate := range strings.Split(elems[1], ",") {
 		courseDate, err := parseCourseDateFormat(plainCourseDate)
 		if err != nil {
 			return "", nil, err
 		}
-		courseDates = append(courseDates, *courseDate)
+		courseDates = append(courseDates, courseDate)
 	}
 
 	return elems[0], courseDates, nil

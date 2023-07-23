@@ -2,37 +2,30 @@ package gakujo
 
 import (
 	"bytes"
-	"io"
 	"net/url"
 
 	"github.com/szpp-dev-team/gakujo-go/model"
 	"github.com/szpp-dev-team/gakujo-go/scrape"
 )
 
-func (c *Client) Home() (model.HomeInfo, error) {
-	body, err := c.fetchHomeHtml()
+func (c *Client) Home() (*model.HomeInfo, error) {
+	b, err := c.fetchHomeHtml()
 	if err != nil {
-		return model.HomeInfo{}, err
+		return nil, err
 	}
-	defer func() {
-		body.Close()
-		_, _ = io.Copy(io.Discard, body)
-	}()
-	b, _ := io.ReadAll(body)
-	taskRows, err := scrape.TaskRows(io.NopCloser(bytes.NewBuffer(b)))
+	taskRows, err := scrape.TaskRows(bytes.NewBuffer(b))
 	if err != nil {
-		return model.HomeInfo{}, err
+		return nil, err
 	}
-	return model.HomeInfo{
+	return &model.HomeInfo{
 		TaskRows: taskRows,
 	}, nil
 }
 
-func (c *Client) fetchHomeHtml() (io.ReadCloser, error) {
+func (c *Client) fetchHomeHtml() ([]byte, error) {
 	datas := make(url.Values)
 	datas.Set("headTitle", "ホーム")
 	datas.Set("menuCode", "Z07") // TODO: menucode を定数化(まとめてやる)
 	datas.Set("nextPath", "/home/home/initialize")
-
-	return c.getPage(GeneralPurposeUrl, datas)
+	return c.GetPage(GeneralPurposeUrl, datas)
 }

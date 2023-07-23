@@ -2,7 +2,6 @@ package gakujo
 
 import (
 	"bytes"
-	"io"
 	"net/url"
 	"strconv"
 
@@ -27,20 +26,11 @@ func (c *Client) ClassEnqDetail(option *model.ClassEnqDetailOption) (model.Class
 }
 
 func (c *Client) fetchGeneralPurposeClassEnqPage() ([]byte, error) {
-	reqURL := "https://gakujo.shizuoka.ac.jp/portal/common/generalPurpose/"
 	data := url.Values{}
 	data.Set("headTitle", "授業評価アンケート一覧")
 	data.Set("menuCode", "A05")
 	data.Set("nextPath", "/classenq/student/searchList/initialize")
-	body, err := c.getPage(reqURL, data)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		body.Close()
-		_, _ = io.Copy(io.Discard, body)
-	}()
-	return io.ReadAll(body)
+	return c.GetPage("https://gakujo.shizuoka.ac.jp/portal/common/generalPurpose/", data)
 }
 
 func (c *Client) fetchClassEnqRowsPage(option *model.ClassEnqSearchOption) ([]byte, error) {
@@ -50,15 +40,7 @@ func (c *Client) fetchClassEnqRowsPage(option *model.ClassEnqSearchOption) ([]by
 	data := url.Values{}
 	data.Set("schoolYear", strconv.Itoa(option.SchoolYear))
 	data.Set("semesterCode", strconv.Itoa(option.SemesterCode.Int()))
-	body, err := c.getPage("https://gakujo.shizuoka.ac.jp/portal/classenq/student/searchList/search", data)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		body.Close()
-		_, _ = io.Copy(io.Discard, body)
-	}()
-	return io.ReadAll(body)
+	return c.GetPage("https://gakujo.shizuoka.ac.jp/portal/classenq/student/searchList/search", data)
 }
 
 func (c *Client) fetchClassEnqDetailPage(option *model.ClassEnqDetailOption) ([]byte, error) {
@@ -71,13 +53,5 @@ func (c *Client) fetchClassEnqDetailPage(option *model.ClassEnqDetailOption) ([]
 	data.Set("schoolYear", strconv.Itoa(option.SchoolYear))
 	data.Set("semesterCode", strconv.Itoa(option.SemesterCode.Int()))
 
-	body, err := c.getPage(reqUrl, data)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		body.Close()
-		_, _ = io.Copy(io.Discard, body)
-	}()
-	return io.ReadAll(body)
+	return c.GetPage(reqUrl, data)
 }

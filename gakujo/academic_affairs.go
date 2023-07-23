@@ -107,11 +107,10 @@ func (kc *KyoumuClient) PostRishuRegistration(formData *model.PostKamokuFormData
 	if _, err := kc.c.fetchSearchKamokuInitHtml(formData.Youbi, formData.Jigen); err != nil {
 		return err
 	}
-	reqUrl := "https://gakujo.shizuoka.ac.jp/kyoumu/searchKamoku.do"
 	data := formData.FormData()
 	data.Set("button_kind.registKamoku.x", "16")
 	data.Set("button_kind.registKamoku.y", "10")
-	resp, err := kc.c.postForm(reqUrl, data)
+	resp, err := kc.c.postForm("https://gakujo.shizuoka.ac.jp/kyoumu/searchKamoku.do", data)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -149,9 +148,8 @@ func (kc *KyoumuClient) GetRishuuInit() error {
 }
 
 func (c *Client) initializeShibboleth(renkeiType string) error {
-	reqUrl := "https://gakujo.shizuoka.ac.jp/portal/home/systemCooperationLink/initializeShibboleth?renkeiType=" + renkeiType
 	resp, err := c.postForm(
-		reqUrl,
+		"https://gakujo.shizuoka.ac.jp/portal/home/systemCooperationLink/initializeShibboleth?renkeiType="+renkeiType,
 		url.Values{"org.apache.struts.taglib.html.TOKEN": []string{c.token}},
 	)
 	if err != nil {
@@ -162,14 +160,13 @@ func (c *Client) initializeShibboleth(renkeiType string) error {
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return util.RespStatusError(resp.StatusCode, http.StatusOK)
+		return unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
 	return nil
 }
 
 func (c *Client) kyoumuLoginStudent() error {
-	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/sso/loginStudent.do"
-	resp, err := c.postForm(reqURL, url.Values{"loginID": {""}})
+	resp, err := c.postForm("https://gakujo.shizuoka.ac.jp/kyoumu/sso/loginStudent.do", url.Values{"loginID": {""}})
 	if err != nil {
 		return err
 	}
@@ -178,27 +175,22 @@ func (c *Client) kyoumuLoginStudent() error {
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return util.RespStatusError(resp.StatusCode, http.StatusOK)
+		return unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
 	return nil
 }
 
 func (c *Client) fetchSeisekiHtml() ([]byte, error) {
-	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/seisekiSearchStudentInit.do;"
-
-	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
-	q := req.URL.Query()
+	q := make(url.Values)
 	q.Set("jsessionid", c.SessionID())
 	q.Set("mainMenuCode", "008")
 	q.Set("parentMenuCode", "007")
-	req.URL.RawQuery = q.Encode()
-
-	resp, err := c.request(req)
+	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/seisekiSearchStudentInit.do;", q)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expected %d)", resp.StatusCode, http.StatusOK)
+		return nil, unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
 	defer func() {
 		resp.Body.Close()
@@ -208,19 +200,16 @@ func (c *Client) fetchSeisekiHtml() ([]byte, error) {
 }
 
 func (c *Client) fetchDepartmentGpaHtml() ([]byte, error) {
-	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/departmentGpa.do;"
-
-	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://gakujo.shizuoka.ac.jp/kyoumu/departmentGpa.do;", nil)
 	q := req.URL.Query()
 	q.Set("jsessionid", c.SessionID())
 	req.URL.RawQuery = q.Encode()
-
-	resp, err := c.request(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expected %d)", resp.StatusCode, http.StatusOK)
+		return nil, unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
 	defer func() {
 		resp.Body.Close()
@@ -230,21 +219,18 @@ func (c *Client) fetchDepartmentGpaHtml() ([]byte, error) {
 }
 
 func (c *Client) fetchChusenRegistrationHtml() ([]byte, error) {
-	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/chuusenRishuuInit.do;"
-
-	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://gakujo.shizuoka.ac.jp/kyoumu/chuusenRishuuInit.do;", nil)
 	q := req.URL.Query()
 	q.Set("jsessionid", c.SessionID())
 	q.Set("mainMenuCode", "019")
 	q.Set("parentMenuCode", "001")
 	req.URL.RawQuery = q.Encode()
-
-	resp, err := c.request(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expected %d)", resp.StatusCode, http.StatusOK)
+		return nil, unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
 	defer func() {
 		resp.Body.Close()
@@ -254,21 +240,16 @@ func (c *Client) fetchChusenRegistrationHtml() ([]byte, error) {
 }
 
 func (c *Client) fetchRishuInitHtml() ([]byte, error) {
-	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/rishuuInit.do"
-
-	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
-	q := req.URL.Query()
+	q := make(url.Values)
 	q.Set("jsessionid", c.SessionID())
 	q.Set("mainMenuCode", "002")
 	q.Set("parentMenuCode", "001")
-	req.URL.RawQuery = q.Encode()
-
-	resp, err := c.request(req)
+	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/rishuuInit.do", q)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expected %d)", resp.StatusCode, http.StatusOK)
+		return nil, unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
 	defer func() {
 		resp.Body.Close()
@@ -278,21 +259,16 @@ func (c *Client) fetchRishuInitHtml() ([]byte, error) {
 }
 
 func (c *Client) fetchSearchKamokuInitHtml(youbi, jigen int) ([]byte, error) {
-	reqURL := "https://gakujo.shizuoka.ac.jp/kyoumu/searchKamokuInit.do"
-
-	req, _ := http.NewRequest(http.MethodGet, reqURL, nil)
-	q := req.URL.Query()
+	q := make(url.Values)
 	q.Set("jsessionid", c.SessionID())
 	q.Set("youbi", strconv.Itoa(youbi))
 	q.Set("jigen", strconv.Itoa(jigen))
-	req.URL.RawQuery = q.Encode()
-
-	resp, err := c.request(req)
+	resp, err := c.get("https://gakujo.shizuoka.ac.jp/kyoumu/searchKamokuInit.do", q)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expected %d)", resp.StatusCode, http.StatusOK)
+		return nil, unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
 	defer func() {
 		resp.Body.Close()

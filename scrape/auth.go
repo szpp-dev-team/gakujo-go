@@ -7,8 +7,8 @@ import (
 )
 
 // return RelayState, SAMLResponse
-func RelayStateAndSAMLResponse(htmlReader io.ReadCloser) (string, string, error) {
-	doc, err := goquery.NewDocumentFromReader(htmlReader)
+func RelayStateAndSAMLResponse(r io.Reader) (string, string, error) {
+	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return "", "", err
 	}
@@ -22,6 +22,5 @@ func RelayStateAndSAMLResponse(htmlReader io.ReadCloser) (string, string, error)
 	if !ok {
 		return "", "", &ErrorNotFound{Name: "SAMLResponse"}
 	}
-
 	return relayState, samlResponse, nil
 }

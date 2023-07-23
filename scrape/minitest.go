@@ -70,17 +70,17 @@ func MinitestRows(r io.Reader) ([]model.MinitestRow, error) {
 	return rows, err
 }
 
-func MinitestDetail(r io.Reader) (model.MinitestDetail, error) {
+func MinitestDetail(r io.Reader) (*model.MinitestDetail, error) {
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
-		return model.MinitestDetail{}, err
+		return nil, err
 	}
 	selection := doc.Find("#area > table > tbody")
 	title := util.ReplaceAndTrim(selection.Find("tr:nth-child(1) > td").Text())
 	periodText := util.ReplaceAndTrim(selection.Find("tr:nth-child(2) > td").Text())
 	beginDate, endDate, err := util.ParsePeriod(periodText)
 	if err != nil {
-		return model.MinitestDetail{}, err
+		return nil, err
 	}
 	numText := util.ReplaceAndTrim(selection.Find("tr:nth-child(3) > td").Text())
 	var num int
@@ -103,9 +103,9 @@ func MinitestDetail(r io.Reader) (model.MinitestDetail, error) {
 		return true
 	})
 	if err != nil {
-		return model.MinitestDetail{}, err
+		return nil, err
 	}
-	return model.MinitestDetail{
+	return &model.MinitestDetail{
 		Title:            title,
 		BeginDate:        beginDate,
 		EndDate:          endDate,

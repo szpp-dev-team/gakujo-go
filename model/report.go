@@ -6,14 +6,14 @@ import (
 
 type ReportRow struct {
 	CourseName     string
-	CourseDates    []CourseDate
+	CourseDates    []*CourseDate
 	Title          string
 	Status         Status
 	BeginDate      time.Time
 	EndDate        time.Time
 	LastSubmitDate time.Time
 	Format         string
-	TaskMetadata
+	*TaskMetadata
 }
 
 func (rr *ReportRow) DetailOption() *ReportDetailOption {

@@ -1,8 +1,8 @@
 package gakujo
 
 import (
+	"bytes"
 	"fmt"
-	"io"
 	"net/url"
 
 	"github.com/szpp-dev-team/gakujo-go/model"
@@ -10,75 +10,56 @@ import (
 )
 
 func (c *Client) ClassNoticeRows(opt *model.ClassNoticeSearchOption) ([]model.ClassNoticeRow, error) {
-	body, err := c.fetchClassNoticeSearchPage(opt)
+	b, err := c.fetchClassNoticeSearchPage(opt)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		body.Close()
-		_, _ = io.Copy(io.Discard, body)
-	}()
-	return scrape.ClassNoticeRows(body)
+	return scrape.ClassNoticeRows(bytes.NewReader(b))
 }
 
 func (c *Client) ClassNoticeDetail(row *model.ClassNoticeRow, opt *model.ClassNoticeSearchOption) (*model.ClassNoticeDetail, error) {
-	body, err := c.fetchClassNoticeDetailPage(row.Index, opt)
+	b, err := c.fetchClassNoticeDetailPage(row.Index, opt)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		body.Close()
-		_, _ = io.Copy(io.Discard, body)
-	}()
-
-	classNoticeDetail, err := scrape.ClassNoticeDetail(body)
+	classNoticeDetail, err := scrape.ClassNoticeDetail(bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
-
 	return classNoticeDetail, nil
 }
 
-func (c *Client) fetchClassNoticeSearchPage(opt *model.ClassNoticeSearchOption) (io.ReadCloser, error) {
-	body, err := c.fetchGeneralPurposeClassHomePage()
-	if err != nil {
+func (c *Client) fetchClassNoticeSearchPage(opt *model.ClassNoticeSearchOption) ([]byte, error) {
+	if _, err := c.fetchGeneralPurposeClassHomePage(); err != nil {
 		return nil, err
 	}
-	body.Close()
-	_, _ = io.Copy(io.Discard, body)
-
-	body, err = c.fetchGeneralPurposeClassNoticePage()
-	if err != nil {
+	if _, err := c.fetchGeneralPurposeClassNoticePage(); err != nil {
 		return nil, err
 	}
-	body.Close()
-	_, _ = io.Copy(io.Discard, body)
-
-	reqUrl := "https://gakujo.shizuoka.ac.jp/portal/classcontact/classContactList/selectClassContactList"
-	data := opt.Formdata()
-	return c.getPage(reqUrl, *data)
+	return c.GetPage("https://gakujo.shizuoka.ac.jp/portal/classcontact/classContactList/selectClassContactList", opt.Formdata())
 }
 
-func (c *Client) fetchClassNoticeDetailPage(index int, opt *model.ClassNoticeSearchOption) (io.ReadCloser, error) {
-	reqUrl := fmt.Sprintf("https://gakujo.shizuoka.ac.jp/portal/classcontact/classContactList/goDetail/%d", index)
-	data := opt.Formdata()
-	return c.getPage(reqUrl, *data)
+func (c *Client) fetchClassNoticeDetailPage(index int, opt *model.ClassNoticeSearchOption) ([]byte, error) {
+	return c.GetPage(
+		fmt.Sprintf("https://gakujo.shizuoka.ac.jp/portal/classcontact/classContactList/goDetail/%d", index),
+		opt.Formdata(),
+	)
 }
 
-func (c *Client) fetchGeneralPurposeClassNoticePage() (io.ReadCloser, error) {
+func (c *Client) fetchGeneralPurposeClassNoticePage() ([]byte, error) {
 	reqUrl := "https://gakujo.shizuoka.ac.jp/portal/common/generalPurpose/"
 	data := url.Values{}
 	data.Set("headTitle", "授業サポート")
 	data.Set("menuCode", "A01")
 	data.Set("nextPath", "/classcontact/classContactList/initialize")
-	return c.getPage(reqUrl, data)
+	return c.GetPage(reqUrl, data)
 }
 
-func (c *Client) fetchGeneralPurposeClassHomePage() (io.ReadCloser, error) {
+func (c *Client) fetchGeneralPurposeClassHomePage() ([]byte, error) {
 	reqUrl := "https://gakujo.shizuoka.ac.jp/portal/common/generalPurpose/"
 	data := url.Values{}
 	data.Set("headTitle", "ホーム")
 	data.Set("menuCode", "A00")
 	data.Set("nextPath", "/classsupporttop/classSupportTop/initialize")
-	return c.getPage(reqUrl, data)
+	return c.GetPage(reqUrl, data)
 }

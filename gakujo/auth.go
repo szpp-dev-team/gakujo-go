@@ -16,24 +16,20 @@ func (c *Client) Login(username, password string) error {
 		return err
 	}
 
-	if err := c.fetchGakujoRootJSESSIONID(); err != nil {
+	if err := c.getTopPageJsp(); err != nil {
 		return err
 	}
-
-	if err := c.preLogin(); err != nil {
+	if err := c.postPreLogin(); err != nil {
 		return err
 	}
-	resp, err := c.shibbolethlogin()
+	loc, err := c.shibbolethlogin()
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusFound {
-		return fmt.Errorf("Response status was %d(expect %d or %d)", resp.StatusCode, http.StatusOK, http.StatusFound)
-	}
 
 	// セッションがないとき
-	if resp.StatusCode == http.StatusFound {
-		loginAPIurl, err := c.fetchLoginAPIurl(resp.Header.Get("Location"))
+	if loc != "" {
+		loginAPIurl, err := c.fetchLoginAPIurl(loc)
 		if err != nil {
 			return err
 		}
@@ -55,14 +51,13 @@ func (c *Client) fetchGakujoPortalJSESSIONID() error {
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+		return unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
-
 	return nil
 }
 
-func (c *Client) fetchGakujoRootJSESSIONID() error {
-	unixmilli := time.Now().UnixNano() / 1000000
+func (c *Client) getTopPageJsp() error {
+	unixmilli := time.Now().UnixNano() / int64(time.Millisecond)
 	resp, err := c.get("https://gakujo.shizuoka.ac.jp/UI/jsp/topPage/topPage.jsp?_=" + strconv.FormatInt(unixmilli, 10))
 	if err != nil {
 		return err
@@ -72,28 +67,25 @@ func (c *Client) fetchGakujoRootJSESSIONID() error {
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+		return unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
-
 	return nil
 }
 
-func (c *Client) preLogin() error {
-	datas := url.Values{}
-	datas.Set("mistakeChecker", "0")
-
-	resp, err := c.client.PostForm("https://gakujo.shizuoka.ac.jp/portal/login/preLogin/preLogin", datas)
+func (c *Client) postPreLogin() error {
+	data := url.Values{}
+	data.Set("mistakeChecker", "0")
+	resp, err := c.client.PostForm("https://gakujo.shizuoka.ac.jp/portal/login/preLogin/preLogin", data)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		resp.Body.Close()
 		_, _ = io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+		return unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
-
 	return nil
 }
 
@@ -107,29 +99,33 @@ func (c *Client) fetchLoginAPIurl(SSOSAMLRequestURL string) (string, error) {
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 	if resp.StatusCode != http.StatusFound {
-		return "", fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+		return "", unexpectedStatusCodeError(http.StatusFound, resp.StatusCode)
 	}
 	return resp.Header.Get("Location"), nil
 }
 
 func (c *Client) login(reqUrl, username, password string) error {
-	htmlReadCloser, err := c.postSSOexecution(reqUrl, username, password)
+	rc, err := c.postSSOexecution(reqUrl, username, password)
 	if err != nil {
 		return err
 	}
-	relayState, samlResponse, err := scrape.RelayStateAndSAMLResponse(htmlReadCloser)
+	defer func() {
+		_, _ = io.Copy(io.Discard, rc)
+		rc.Close()
+	}()
+	relayState, samlResponse, err := scrape.RelayStateAndSAMLResponse(rc)
 	if err != nil {
 		return err
 	}
-	htmlReadCloser.Close()
-	_, _ = io.Copy(io.Discard, htmlReadCloser)
 
 	location, err := c.fetchSSOinitLoginLocation(relayState, samlResponse)
 	if err != nil {
 		return err
 	}
 
-	resp, err := c.getWithReferer(location, "https://idp.shizuoka.ac.jp/")
+	params := url.Values{}
+	params.Set("Referer", "https://idp.shizuoka.ac.jp/")
+	resp, err := c.get(location, params)
 	if err != nil {
 		return err
 	}
@@ -138,46 +134,48 @@ func (c *Client) login(reqUrl, username, password string) error {
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+		return unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
 
 	return nil
 }
 
-func (c *Client) postSSOexecution(reqUrl, username, password string) (io.ReadCloser, error) {
-	datas := make(url.Values)
-	datas.Set("j_username", username)
-	datas.Set("j_password", password)
-	datas.Set("_eventId_proceed", "")
-
-	resp, err := c.client.PostForm(reqUrl, datas)
+func (c *Client) postSSOexecution(uri, username, password string) (io.ReadCloser, error) {
+	data := make(url.Values)
+	data.Set("j_username", username)
+	data.Set("j_password", password)
+	data.Set("_eventId_proceed", "")
+	resp, err := c.client.PostForm(uri, data)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
+		return nil, unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
 	}
-
 	return resp.Body, nil
 }
 
-func (c *Client) shibbolethlogin() (*http.Response, error) {
-	url := HostName + "/portal/shibbolethlogin/shibbolethLogin/initLogin/sso"
-	req, _ := http.NewRequest(http.MethodPost, url, nil)
-	resp, err := c.request(req)
-	resp.Body.Close()
-	_, _ = io.Copy(io.Discard, resp.Body)
-	return resp, err
+func (c *Client) shibbolethlogin() (string, error) {
+	req, _ := http.NewRequest(http.MethodPost, HostName+"/portal/shibbolethlogin/shibbolethLogin/initLogin/sso", nil)
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+	}()
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusFound {
+		return "", unexpectedStatusCodeError(http.StatusOK, resp.StatusCode)
+	}
+	return resp.Header.Get("Location"), nil
 }
 
 func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (string, error) {
-	reqUrl := "https://gakujo.shizuoka.ac.jp/Shibboleth.sso/SAML2/POST"
-
-	datas := make(url.Values)
-	datas.Set("RelayState", relayState)
-	datas.Set("SAMLResponse", samlResponse)
-
-	resp, err := c.client.PostForm(reqUrl, datas)
+	data := make(url.Values)
+	data.Set("RelayState", relayState)
+	data.Set("SAMLResponse", samlResponse)
+	resp, err := c.client.PostForm("https://gakujo.shizuoka.ac.jp/Shibboleth.sso/SAML2/POST", data)
 	if err != nil {
 		return "", err
 	}
@@ -186,26 +184,16 @@ func (c *Client) fetchSSOinitLoginLocation(relayState, samlResponse string) (str
 		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 	if resp.StatusCode != http.StatusFound {
-		return "", fmt.Errorf("%s\nResponse status was %d(expect %d)", reqUrl, resp.StatusCode, http.StatusFound)
+		return "", fmt.Errorf("response status was %d(expect %d)", resp.StatusCode, http.StatusOK)
 	}
-
 	return resp.Header.Get("Location"), nil
 }
 
 func (c *Client) initialize() error {
-	reqURL := "https://gakujo.shizuoka.ac.jp/portal/home/home/initialize"
-
-	datas := make(url.Values)
-	datas.Set("EXCLUDE_SET", "")
-
-	rc, err := c.getPage(reqURL, datas)
-	if err != nil {
+	data := make(url.Values)
+	data.Set("EXCLUDE_SET", "")
+	if _, err := c.GetPage("https://gakujo.shizuoka.ac.jp/portal/home/home/initialize", data); err != nil {
 		return err
 	}
-	defer func() {
-		rc.Close()
-		_, _ = io.Copy(io.Discard, rc)
-	}()
-
 	return nil
 }

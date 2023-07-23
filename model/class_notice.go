@@ -10,7 +10,7 @@ import (
 
 type ClassNoticeRow struct {
 	CourseName  string
-	CourseDates []CourseDate
+	CourseDates []*CourseDate
 	TeacherName string
 	Title       string
 	ContactType string
@@ -209,7 +209,7 @@ var whiteList = map[string]struct{}{
 	"studentName":                       {},
 }
 
-func (o ClassNoticeSearchOption) Formdata() *url.Values {
+func (o ClassNoticeSearchOption) Formdata() url.Values {
 	on := func(b bool) string {
 		if b {
 			return "on"
@@ -261,5 +261,5 @@ func (o ClassNoticeSearchOption) Formdata() *url.Values {
 		}
 	}
 
-	return &uniqueData
+	return uniqueData
 }

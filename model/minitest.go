@@ -4,7 +4,7 @@ import "time"
 
 type MinitestRow struct {
 	CourseName   string
-	CourseDates  []CourseDate
+	CourseDates  []*CourseDate
 	Title        string
 	Status       Status
 	BeginDate    time.Time
